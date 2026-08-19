@@ -1,11 +1,18 @@
 /**
- * REST API CLIENT SERVICE
- * Communicates with Fullstack Python + SQLite Backend Server (/api/*)
+ * REST API CLIENT SERVICE (SMART HYBRID CLOUD & LOCALSTORAGE EDITION)
+ * Handles dual-mode operations:
+ * - Server Online: Syncs with Python SQLite Backend Server (/api/*)
+ * - Netlify Online / Server Offline: Gracefully handles local persistence via LocalStorage!
  */
 
 class ApiService {
   constructor() {
-    this.baseUrl = window.location.origin; // Dynamically uses current host (http://localhost:8080)
+    const origin = window.location.origin || '';
+    if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      this.baseUrl = origin;
+    } else {
+      this.baseUrl = 'http://localhost:8080';
+    }
   }
 
   getToken() {
@@ -32,12 +39,21 @@ class ApiService {
     }
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s connection timeout
+      config.signal = controller.signal;
+
       const res = await fetch(`${this.baseUrl}${endpoint}`, config);
+      clearTimeout(timeoutId);
       const resData = await res.json();
       return resData;
     } catch (err) {
-      console.warn(`API Error [${endpoint}]:`, err);
-      return { status: 'error', message: 'Không thể kết nối đến Backend Server.' };
+      // Fallback for Netlify / Offline deployments
+      console.log(`[Offline Mode] Using local browser storage for ${endpoint}`);
+      return { 
+        status: 'offline', 
+        message: 'Đang dùng chế độ lưu trữ trình duyệt (LocalStorage)' 
+      };
     }
   }
 

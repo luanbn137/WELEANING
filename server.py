@@ -16,9 +16,9 @@ import mimetypes
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
-# Database File Path
+# Database File Path & Dynamic Port for Render.com Cloud
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
-PORT = 8080
+PORT = int(os.environ.get('PORT', 8080))
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
