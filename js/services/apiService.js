@@ -88,6 +88,10 @@ class ApiService {
     return this.request('/api/admin/stats', 'GET');
   }
 
+  async searchDictionary5k(query) {
+    return this.request(`/api/dictionary/search?q=${encodeURIComponent(query)}`, 'GET');
+  }
+
   async sendOTP(email) {
     return this.request('/api/auth/send-otp', 'POST', { email });
   }
