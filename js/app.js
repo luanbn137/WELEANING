@@ -1315,137 +1315,109 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     container.innerHTML = '';
 
-    if (filtered.length === 0 && query.length > 1) {
+    if (filtered.length === 0) {
       container.innerHTML = `
-        <div style="text-align:center; padding:1.5rem; color:var(--accent-amber);" id="dict-cloud-loading">
-          <i class="fa-solid fa-spinner fa-spin" style="font-size:1.8rem; margin-bottom:0.5rem; display:block;"></i>
-          Đang tra cứu Từ điển Cloud API toàn cầu cho "${query}"...
+        <div style="text-align:center; padding:2rem; color:var(--text-dim);">
+          <i class="fa-solid fa-magnifying-glass" style="font-size:2rem; margin-bottom:0.5rem; display:block;"></i>
+          Không tìm thấy từ vựng khớp với "${query}". Hãy thử gõ từ khác (như: bệnh viện, trường học, máy tính, cà phê, bác sĩ, khách sạn, nhà hàng, bạn bè...)!
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'dict-entry-card';
+      card.style.cssText = 'background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:12px; padding:1.2rem; margin-bottom:0.5rem;';
+
+      const langsToDisplay = (langFilter === 'ALL') ? ['EN', 'JA', 'ZH', 'KO'] : [langFilter];
+      
+      let langBlocksHtml = langsToDisplay.map(l => {
+        const lData = item[l];
+        if (!lData) return '';
+        const flagMap = { 'EN': '🇬🇧', 'JA': '🇯🇵', 'ZH': '🇨🇳', 'KO': '🇰🇷' };
+        const nameMap = { 'EN': 'Tiếng Anh', 'JA': 'Tiếng Nhật', 'ZH': 'Tiếng Trung', 'KO': 'Tiếng Hàn' };
+
+        return `
+          <div style="flex:1; min-width:220px; background:rgba(0,0,0,0.25); border-radius:8px; padding:0.85rem; border:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+              <span style="font-weight:700; color:var(--primary-light); font-size:0.9rem;">${flagMap[l]} ${nameMap[l]}</span>
+              <button class="btn btn-primary btn-sm btn-add-dict-to-vault" data-id="${item.id}" data-lang="${l}" style="padding:0.2rem 0.6rem; font-size:0.75rem;">
+                <i class="fa-solid fa-plus"></i> Thêm vào Sổ từ
+              </button>
+            </div>
+            <div style="font-size:1.25rem; font-weight:700; color:#fff;">${lData.word}</div>
+            <div style="font-size:0.85rem; color:var(--accent-amber); font-style:italic;">${lData.phonetic || ''}</div>
+            <div style="font-size:0.9rem; color:var(--secondary); margin-top:0.3rem;"><strong>Nghĩa:</strong> ${lData.translationVi}</div>
+            <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.2rem;">${lData.explanationEn}</div>
+            <div style="font-size:0.8rem; background:rgba(255,255,255,0.04); padding:0.4rem; border-radius:6px; margin-top:0.4rem; font-style:italic;">
+              "${lData.exampleSentence}"
+              <br><span style="color:var(--text-muted); font-style:normal;">👉 ${lData.exampleTranslation}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px dashed rgba(255,255,255,0.1); padding-bottom:0.5rem;">
+          <span class="badge" style="background:var(--primary); color:#fff; font-size:0.8rem; padding:0.2rem 0.6rem; border-radius:12px;">
+            <i class="fa-solid fa-tag"></i> ${item.category}
+          </span>
+          <small style="color:var(--secondary); font-weight:600;"><i class="fa-solid fa-bolt"></i> Tra cứu Siêu tốc 0s</small>
+        </div>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          ${langBlocksHtml}
         </div>
       `;
 
-      // Live Cloud API Lookup with Vietnamese Auto-Translation Support
-      (async () => {
-        let searchTerm = query;
-        const isVietnamese = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(query);
-        
-        if (isVietnamese) {
-          try {
-            const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=vi|en`);
-            if (transRes.ok) {
-              const transData = await transRes.json();
-              if (transData && transData.responseData && transData.responseData.translatedText) {
-                searchTerm = transData.responseData.translatedText;
-              }
-            }
-          } catch(e) {}
-        }
+      container.appendChild(card);
+    });
 
-        const allLangsData = await window.aiEngine.autoFillAllLangs(searchTerm);
-        const loadingElem = document.getElementById('dict-cloud-loading');
-        if (loadingElem) loadingElem.remove();
+    // Attach click listeners for "Thêm vào Sổ từ" buttons inside dictionary
+    container.querySelectorAll('.btn-add-dict-to-vault').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        const targetLang = e.currentTarget.getAttribute('data-lang');
+        const dictItem = dict.find(d => d.id === id);
+        if (dictItem && dictItem[targetLang]) {
+          const lData = dictItem[targetLang];
+          const user = window.authService.getUser();
+          const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
 
-        const cloudItem = {
-          id: `dict-cloud-${Date.now()}`,
-          keywords: [query, searchTerm],
-          category: `🌐 Tra cứu Từ điển Trực tuyến (${query})`,
-          ...allLangsData
-        };
+          const vocabItem = {
+            id: `vocab-${Date.now()}-${targetLang}`,
+            lang: targetLang,
+            word: lData.word,
+            phonetic: lData.phonetic || '',
+            translation_vi: lData.translationVi,
+            explanation_en: lData.explanationEn,
+            example_sentence: lData.exampleSentence,
+            example_translation: lData.exampleTranslation,
+            week_num: state.currentWeek,
+            mastery_level: 1,
+            created_by: createdBy
+          };
 
-        const card = document.createElement('div');
-        card.className = 'dict-entry-card';
-        card.style.cssText = 'background:rgba(99,102,241,0.06); border:1px solid var(--primary); border-radius:12px; padding:1.2rem; margin-bottom:0.5rem;';
-
-        const langsToDisplay = (langFilter === 'ALL') ? ['EN', 'JA', 'ZH', 'KO'] : [langFilter];
-        let langBlocksHtml = langsToDisplay.map(l => {
-          const lData = cloudItem[l];
-          if (!lData) return '';
-          const flagMap = { 'EN': '🇬🇧', 'JA': '🇯🇵', 'ZH': '🇨🇳', 'KO': '🇰🇷' };
-          const nameMap = { 'EN': 'Tiếng Anh', 'JA': 'Tiếng Nhật', 'ZH': 'Tiếng Trung', 'KO': 'Tiếng Hàn' };
-
-          return `
-            <div style="flex:1; min-width:220px; background:rgba(0,0,0,0.25); border-radius:8px; padding:0.85rem; border:1px solid rgba(255,255,255,0.05);">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                <span style="font-weight:700; color:var(--primary-light); font-size:0.9rem;">${flagMap[l]} ${nameMap[l]}</span>
-                <button class="btn btn-primary btn-sm btn-add-dict-to-vault" data-word="${lData.word}" data-phonetic="${lData.phonetic || ''}" data-trans="${lData.translationVi}" data-exp="${lData.explanationEn}" data-ex="${lData.exampleSentence}" data-extrans="${lData.exampleTranslation}" data-lang="${l}" style="padding:0.2rem 0.6rem; font-size:0.75rem;">
-                  <i class="fa-solid fa-plus"></i> Thêm vào Sổ từ
-                </button>
-              </div>
-              <div style="font-size:1.25rem; font-weight:700; color:#fff;">${lData.word}</div>
-              <div style="font-size:0.85rem; color:var(--accent-amber); font-style:italic;">${lData.phonetic || ''}</div>
-              <div style="font-size:0.9rem; color:var(--secondary); margin-top:0.3rem;"><strong>Nghĩa:</strong> ${lData.translationVi}</div>
-              <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.2rem;">${lData.explanationEn}</div>
-              <div style="font-size:0.8rem; background:rgba(255,255,255,0.04); padding:0.4rem; border-radius:6px; margin-top:0.4rem; font-style:italic;">
-                "${lData.exampleSentence}"
-                <br><span style="color:var(--text-muted); font-style:normal;">👉 ${lData.exampleTranslation}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px dashed rgba(255,255,255,0.1); padding-bottom:0.5rem;">
-            <span class="badge" style="background:var(--accent-amber); color:#000; font-weight:700; font-size:0.8rem; padding:0.2rem 0.6rem; border-radius:12px;">
-              <i class="fa-solid fa-globe"></i> Tra cứu Cloud API Trực tuyến
-            </span>
-            <small style="color:var(--text-dim);">Kết quả từ kho từ điển toàn cầu</small>
-          </div>
-          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            ${langBlocksHtml}
-          </div>
-        `;
-
-        container.appendChild(card);
-
-        // Listener for Cloud Add buttons
-        card.querySelectorAll('.btn-add-dict-to-vault').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const wordVal = e.currentTarget.getAttribute('data-word');
-            const phoneticVal = e.currentTarget.getAttribute('data-phonetic');
-            const transVal = e.currentTarget.getAttribute('data-trans');
-            const expVal = e.currentTarget.getAttribute('data-exp');
-            const exVal = e.currentTarget.getAttribute('data-ex');
-            const exTransVal = e.currentTarget.getAttribute('data-extrans');
-            const targetLang = e.currentTarget.getAttribute('data-lang');
-
-            const user = window.authService.getUser();
-            const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
-
-            const vocabItem = {
-              id: `vocab-${Date.now()}-${targetLang}`,
-              lang: targetLang,
-              word: wordVal,
-              phonetic: phoneticVal || '',
-              translation_vi: transVal,
-              explanation_en: expVal,
-              example_sentence: exVal,
-              example_translation: exTransVal,
-              week_num: state.currentWeek,
-              mastery_level: 1,
-              created_by: createdBy
-            };
-
-            window.vocabRepo.add({
-              id: vocabItem.id,
-              lang: targetLang,
-              word: vocabItem.word,
-              phonetic: vocabItem.phonetic,
-              translationVi: vocabItem.translation_vi,
-              explanationEn: vocabItem.explanation_en,
-              exampleSentence: vocabItem.example_sentence,
-              exampleTranslation: vocabItem.example_translation,
-              weekNum: state.currentWeek,
-              masteryLevel: 1,
-              createdBy: createdBy
-            });
-
-            await window.apiService.saveVocab(vocabItem);
-            await renderVocabTable();
-            showToast(`✨ Đã thêm từ vựng "${wordVal}" vào Sổ từ vựng (${targetLang})!`, "success");
+          window.vocabRepo.add({
+            id: vocabItem.id,
+            lang: targetLang,
+            word: vocabItem.word,
+            phonetic: vocabItem.phonetic,
+            translationVi: vocabItem.translation_vi,
+            explanationEn: vocabItem.explanation_en,
+            exampleSentence: vocabItem.example_sentence,
+            exampleTranslation: vocabItem.example_translation,
+            weekNum: state.currentWeek,
+            masteryLevel: 1,
+            createdBy: createdBy
           });
-        });
+
+          await window.apiService.saveVocab(vocabItem);
+          await renderVocabTable();
+          showToast(`✨ Đã thêm từ vựng "${lData.word}" vào Sổ từ vựng (${targetLang})!`, "success");
+        }
       });
-      return;
-    }
+    });
 
     filtered.forEach(item => {
       const card = document.createElement('div');
