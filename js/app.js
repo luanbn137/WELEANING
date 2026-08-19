@@ -823,15 +823,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      // 1. DUPLICATE CHECK WARNING
+      // 1. DUPLICATE CHECK WARNING (only user-added items, NOT default seed items)
       const cleanWord = word.trim().normalize("NFC").toLowerCase();
-      const existingItems = window.vocabRepo.getAll();
+      const existingItems = window.vocabRepo.getAll().filter(i => i.id && !i.id.startsWith('vocab-en-') && !i.id.startsWith('vocab-ja-') && !i.id.startsWith('vocab-zh-') && !i.id.startsWith('vocab-ko-') && !i.id.startsWith('vocab-8') && !i.id.startsWith('vocab-9') && !i.id.startsWith('vocab-10') && !i.id.startsWith('vocab-11'));
       const isDuplicate = existingItems.some(i => 
         (i.word || '').trim().normalize("NFC").toLowerCase() === cleanWord
       );
 
       if (isDuplicate && !state.editingVocabId) {
-        showToast(`⚠️ Từ vựng "${word}" đã tồn tại trong Sổ từ vựng! Vui lòng không thêm trùng.`, "warning");
+        showToast(`⚠️ Từ vựng "${word}" đã tồn tại trong Sổ từ! Vui lòng không thêm trùng.`, "warning");
         return;
       }
 
@@ -983,31 +983,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterVal = document.getElementById('filter-mastery').value;
     const searchVal = (document.getElementById('inp-search-vocab')?.value || '').trim().toLowerCase();
     
-    // 1. Load local items from LocalStorage repository for active language
-    const localItems = window.vocabRepo.getByLang(state.currentLang);
+    // 1. Build item map starting from empty - Server is SOURCE OF TRUTH
     const itemMap = new Map();
 
-    localItems.forEach(i => {
-      if (i.lang === state.currentLang || (!i.lang && state.currentLang === 'EN')) {
-        itemMap.set(i.id, {
-          id: i.id,
-          lang: i.lang || state.currentLang,
-          word: i.word,
-          phonetic: i.phonetic || '',
-          translationVi: i.translationVi || i.translation_vi || '',
-          explanationEn: i.explanationEn || i.explanation_en || '',
-          exampleSentence: i.exampleSentence || i.example_sentence || '',
-          exampleTranslation: i.exampleTranslation || i.example_translation || '',
-          masteryLevel: i.masteryLevel || i.mastery_level || 1,
-          createdBy: i.createdBy || i.created_by || null
-        });
-      }
-    });
-
-    // 2. Fetch live shared vocabulary database from Server for active language
+    // 2. Always fetch from Server Cloud first (source of truth for multi-device sync)
+    let serverConnected = false;
     try {
       const res = await window.apiService.getVocab();
       if (res && res.status === 'success' && Array.isArray(res.vocab)) {
+        serverConnected = true;
         window.vocabRepo.syncServerItems(res.vocab);
         res.vocab.forEach(i => {
           if (i.lang === state.currentLang || (!i.lang && state.currentLang === 'EN')) {
@@ -1027,7 +1011,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
     } catch(err) {
-      console.warn("Unable to fetch server vocab, fallback to local:", err);
+      console.warn("Server unreachable, using local storage:", err);
+    }
+
+    // 3. Fallback: If server offline, show local cached items (excluding seed defaults)
+    if (!serverConnected) {
+      const localItems = window.vocabRepo.getAll().filter(i => !i.id.startsWith('vocab-en-') && !i.id.startsWith('vocab-ja-') && !i.id.startsWith('vocab-zh-') && !i.id.startsWith('vocab-ko-') && !String(i.id).match(/^vocab-[0-9]+$/) && !i.id.startsWith('vocab-8') && !i.id.startsWith('vocab-9') && !i.id.startsWith('vocab-10') && !i.id.startsWith('vocab-11'));
+      localItems.forEach(i => {
+        if (i.lang === state.currentLang) {
+          itemMap.set(i.id, {
+            id: i.id,
+            lang: i.lang,
+            word: i.word,
+            phonetic: i.phonetic || '',
+            translationVi: i.translationVi || i.translation_vi || '',
+            explanationEn: i.explanationEn || i.explanation_en || '',
+            exampleSentence: i.exampleSentence || i.example_sentence || '',
+            exampleTranslation: i.exampleTranslation || i.example_translation || '',
+            masteryLevel: i.masteryLevel || i.mastery_level || 1,
+            createdBy: i.createdBy || i.created_by || null
+          });
+        }
+      });
+    }
+
+    // Update sync status indicator
+    const syncBadge = document.getElementById('sync-status-badge');
+    if (syncBadge) {
+      syncBadge.innerHTML = serverConnected 
+        ? `<i class="fa-solid fa-circle" style="color:#22c55e; font-size:0.6rem;"></i> Đã đồng bộ Cloud`
+        : `<i class="fa-solid fa-circle" style="color:#f59e0b; font-size:0.6rem;"></i> Offline (Cache)`;
     }
 
     let items = Array.from(itemMap.values());
