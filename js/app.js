@@ -856,137 +856,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      // 1. DUPLICATE CHECK WARNING (only user-added items, NOT default seed items)
       const cleanWord = word.trim().normalize("NFC").toLowerCase();
-      const existingItems = window.vocabRepo.getAll().filter(i => i.id && !i.id.startsWith('vocab-en-') && !i.id.startsWith('vocab-ja-') && !i.id.startsWith('vocab-zh-') && !i.id.startsWith('vocab-ko-') && !i.id.startsWith('vocab-8') && !i.id.startsWith('vocab-9') && !i.id.startsWith('vocab-10') && !i.id.startsWith('vocab-11'));
-      const isDuplicate = existingItems.some(i => 
-        (i.word || '').trim().normalize("NFC").toLowerCase() === cleanWord
+      const existingItems = window.vocabRepo.getAll();
+      const existingMatch = existingItems.find(i => 
+        (i.word || '').trim().normalize("NFC").toLowerCase() === cleanWord && (i.lang === state.currentLang || !i.lang)
       );
-
-      if (isDuplicate && !state.editingVocabId) {
-        showToast(`⚠️ Từ vựng "${word}" đã tồn tại trong Sổ từ! Vui lòng không thêm trùng.`, "warning");
-        return;
-      }
 
       const user = window.authService.getUser();
       const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
 
-      if (state.editingVocabId) {
-        // Editing single item
-        const newVocab = {
-          id: state.editingVocabId,
-          lang: state.currentLang,
-          word: word,
-          phonetic: phonetic,
-          translation_vi: transVi,
-          explanation_en: expEn,
-          example_sentence: exSentence,
-          example_translation: exTrans,
-          week_num: state.currentWeek,
-          mastery_level: 1,
-          created_by: createdBy
-        };
+      const targetId = state.editingVocabId || (existingMatch ? existingMatch.id : `vocab-${Date.now()}-${state.currentLang}`);
 
-        window.vocabRepo.add({
-          id: newVocab.id,
-          lang: state.currentLang,
-          word: newVocab.word,
-          phonetic: newVocab.phonetic,
-          translationVi: newVocab.translation_vi,
-          explanationEn: newVocab.explanation_en,
-          exampleSentence: newVocab.example_sentence,
-          exampleTranslation: newVocab.example_translation,
-          weekNum: newVocab.week_num,
-          masteryLevel: 1,
-          createdBy: createdBy
-        });
+      const vocabItem = {
+        id: targetId,
+        lang: state.currentLang,
+        word: word.trim(),
+        phonetic: phonetic.trim(),
+        translation_vi: transVi.trim(),
+        explanation_en: expEn.trim(),
+        example_sentence: exSentence.trim(),
+        example_translation: exTrans.trim(),
+        week_num: state.currentWeek,
+        mastery_level: 1,
+        created_by: createdBy
+      };
 
-        await window.apiService.saveVocab(newVocab);
-        showToast(`✨ Đã cập nhật từ vựng "${word}" thành công!`, "success");
-      } else {
-        // 2. INSTANT LOCAL SAVE & BACKGROUND 4-LANGUAGE SYNCHRONIZED SAVE
-        const syncTimestamp = Date.now();
-        const primaryVocabItem = {
-          id: `vocab-${syncTimestamp}-${state.currentLang}`,
-          lang: state.currentLang,
-          word: word.trim(),
-          phonetic: phonetic.trim(),
-          translation_vi: transVi.trim(),
-          explanation_en: expEn.trim(),
-          example_sentence: exSentence.trim(),
-          example_translation: exTrans.trim(),
-          week_num: state.currentWeek,
-          mastery_level: 1,
-          created_by: createdBy
-        };
+      // 1. Save locally for 0s instant UI rendering
+      window.vocabRepo.add({
+        id: vocabItem.id,
+        lang: vocabItem.lang,
+        word: vocabItem.word,
+        phonetic: vocabItem.phonetic,
+        translationVi: vocabItem.translation_vi,
+        explanationEn: vocabItem.explanation_en,
+        exampleSentence: vocabItem.example_sentence,
+        exampleTranslation: vocabItem.example_translation,
+        weekNum: state.currentWeek,
+        masteryLevel: 1,
+        createdBy: createdBy
+      });
 
-        // Save primary item locally
-        window.vocabRepo.add({
-          id: primaryVocabItem.id,
-          lang: primaryVocabItem.lang,
-          word: primaryVocabItem.word,
-          phonetic: primaryVocabItem.phonetic,
-          translationVi: primaryVocabItem.translation_vi,
-          explanationEn: primaryVocabItem.explanation_en,
-          exampleSentence: primaryVocabItem.example_sentence,
-          exampleTranslation: primaryVocabItem.example_translation,
-          weekNum: state.currentWeek,
-          masteryLevel: 1,
-          createdBy: createdBy
-        });
+      // 2. Save to Supabase Cloud DB
+      await window.apiService.saveVocab(vocabItem);
 
-        // Save primary item to Supabase Cloud DB
-        await window.apiService.saveVocab(primaryVocabItem);
+      // 3. Clear inputs & reset edit state
+      state.editingVocabId = null;
+      document.getElementById('inp-vocab-word').value = '';
+      document.getElementById('inp-vocab-phonetic').value = '';
+      document.getElementById('inp-vocab-trans-vi').value = '';
+      document.getElementById('inp-vocab-exp-en').value = '';
+      document.getElementById('inp-vocab-ex-sentence').value = '';
+      document.getElementById('inp-vocab-ex-trans').value = '';
 
-        // Clear input form fields immediately
-        document.getElementById('inp-vocab-word').value = '';
-        document.getElementById('inp-vocab-phonetic').value = '';
-        document.getElementById('inp-vocab-trans-vi').value = '';
-        document.getElementById('inp-vocab-exp-en').value = '';
-        document.getElementById('inp-vocab-ex-sentence').value = '';
-        document.getElementById('inp-vocab-ex-trans').value = '';
+      const btnSave = document.getElementById('btn-save-vocab');
+      if (btnSave) {
+        btnSave.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu vào Sổ từ & DB`;
+      }
 
-        // Immediately render updated table
-        await renderVocabTable();
-        showToast(`✨ Đã thêm từ vựng "${word}" vào Sổ từ!`, "success");
+      // 4. Render updated table
+      await renderVocabTable();
+      showToast(`✨ Đã ${existingMatch ? 'cập nhật' : 'thêm mới'} từ vựng "${word.trim()}" vào Sổ từ!`, "success");
 
-        // Background 3-Language Translation & Sync (skip current language to prevent duplicate)
+      // 5. Background 3-Language Sync (for brand new words)
+      if (!existingMatch && !state.editingVocabId) {
         (async () => {
           try {
-            const allLangData = await window.aiEngine.autoFillAllLangs(word);
+            const allLangData = await window.aiEngine.autoFillAllLangs(word.trim());
             const otherLangs = ['EN', 'JA', 'ZH', 'KO'].filter(l => l !== state.currentLang);
 
             for (const targetLang of otherLangs) {
               const langData = allLangData[targetLang] || {};
-              const itemVocab = {
-                id: `vocab-${syncTimestamp}-${targetLang}`,
+              const syncItem = {
+                id: `vocab-${Date.now()}-${targetLang}`,
                 lang: targetLang,
-                word: langData.word || word,
-                phonetic: langData.phonetic || '',
-                translation_vi: langData.translationVi || transVi,
-                explanation_en: langData.explanationEn || expEn,
-                example_sentence: langData.exampleSentence || exSentence,
-                example_translation: langData.exampleTranslation || exTrans,
+                word: (langData.word || word.trim()).replace(/<[^>]*>/g, '').trim(),
+                phonetic: (langData.phonetic || '').trim(),
+                translation_vi: (langData.translationVi || transVi).trim(),
+                explanation_en: (langData.explanationEn || expEn).trim(),
+                example_sentence: (langData.exampleSentence || exSentence).replace(/<[^>]*>/g, '').trim(),
+                example_translation: (langData.exampleTranslation || exTrans).replace(/<[^>]*>/g, '').trim(),
                 week_num: state.currentWeek,
                 mastery_level: 1,
                 created_by: createdBy
               };
 
               window.vocabRepo.add({
-                id: itemVocab.id,
+                id: syncItem.id,
                 lang: targetLang,
-                word: itemVocab.word,
-                phonetic: itemVocab.phonetic,
-                translationVi: itemVocab.translation_vi,
-                explanationEn: itemVocab.explanation_en,
-                exampleSentence: itemVocab.example_sentence,
-                exampleTranslation: itemVocab.example_translation,
+                word: syncItem.word,
+                phonetic: syncItem.phonetic,
+                translationVi: syncItem.translation_vi,
+                explanationEn: syncItem.explanation_en,
+                exampleSentence: syncItem.example_sentence,
+                exampleTranslation: syncItem.example_translation,
                 weekNum: state.currentWeek,
                 masteryLevel: 1,
                 createdBy: createdBy
               });
 
-              window.apiService.saveVocab(itemVocab).catch(e => console.warn("Background server save:", e));
+              window.apiService.saveVocab(syncItem).catch(e => console.warn("Background server save:", e));
             }
           } catch(err) {
             console.warn("Background translation error:", err);
