@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await updateDashboardSkillProgress();
     updateSRSBadgeCount();
     updateStreakDisplay();
+
+    // Real-time Cloud Sync Polling across devices (every 10s)
+    setInterval(async () => {
+      await renderVocabTable();
+    }, 10000);
   }
 
   /* ==========================================================================
