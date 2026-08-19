@@ -296,8 +296,13 @@ class VocabRepository {
     if (raw) {
       try { 
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length >= DEFAULT_VOCAB_ITEMS.length) {
-          return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const map = new Map();
+          // Keep all default items
+          DEFAULT_VOCAB_ITEMS.forEach(d => map.set(d.id, d));
+          // Overlay user saved items
+          parsed.forEach(p => map.set(p.id, p));
+          return Array.from(map.values());
         }
       } catch(e) {}
     }
