@@ -106,10 +106,9 @@ class AIEngineService {
       // 3. Smart English-Vietnamese Dictionary Fallback for English words
       if (currentTargetLang === 'EN' && this.enViDict[cleanKey]) {
         const item = this.enViDict[cleanKey];
-        const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
         return {
           word: formattedWord,
-          phonetic: `/${cleanKey}/`,
+          phonetic: item.phonetic || `/${cleanKey}/`,
           translationVi: item.vi,
           explanationEn: item.def,
           exampleSentence: item.ex,
@@ -117,9 +116,92 @@ class AIEngineService {
         };
       }
 
-      // 4. Intelligent Dynamic NLP Translator Engine
-      const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
+      // 4. Live Cloud Dictionary API Fetching for Unlimited English Words (Free Dictionary API + MyMemory API)
+      if (currentTargetLang === 'EN') {
+        try {
+          const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanKey)}`);
+          if (dictRes.ok) {
+            const data = await dictRes.json();
+            if (Array.isArray(data) && data.length > 0) {
+              const entry = data[0];
+              const phonetic = entry.phonetic || (entry.phonetics && entry.phonetics.find(p => p.text)?.text) || `/${cleanKey}/`;
+              let definition = "Key English vocabulary word.";
+              let example = `Learning the word "${formattedWord}" enhances your English proficiency.`;
+              
+              if (entry.meanings && entry.meanings.length > 0) {
+                const meaning = entry.meanings[0];
+                if (meaning.definitions && meaning.definitions.length > 0) {
+                  definition = meaning.definitions[0].definition || definition;
+                  if (meaning.definitions[0].example) {
+                    example = meaning.definitions[0].example;
+                  }
+                }
+              }
 
+              // Live translation for Vietnamese meaning
+              let translationVi = `Dịch nghĩa: ${formattedWord}`;
+              try {
+                const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(rawWord)}&langpair=en|vi`);
+                if (transRes.ok) {
+                  const transData = await transRes.json();
+                  if (transData && transData.responseData && transData.responseData.translatedText) {
+                    translationVi = transData.responseData.translatedText;
+                  }
+                }
+              } catch(e) {}
+
+              // Live translation for Example sentence
+              let exampleTranslation = `Bản dịch câu ví dụ cho "${formattedWord}".`;
+              try {
+                const exTransRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(example)}&langpair=en|vi`);
+                if (exTransRes.ok) {
+                  const exTransData = await exTransRes.json();
+                  if (exTransData && exTransData.responseData && exTransData.responseData.translatedText) {
+                    exampleTranslation = exTransData.responseData.translatedText;
+                  }
+                }
+              } catch(e) {}
+
+              return {
+                word: formattedWord,
+                phonetic: phonetic,
+                translationVi: translationVi,
+                explanationEn: definition,
+                exampleSentence: example,
+                exampleTranslation: exampleTranslation
+              };
+            }
+          }
+        } catch(apiErr) {
+          console.warn("Live Cloud Dictionary lookup fallback:", apiErr);
+        }
+      }
+
+      // 5. Live Multilingual Translation Cloud API for JA, ZH, KO
+      if (['JA', 'ZH', 'KO'].includes(currentTargetLang)) {
+        try {
+          const langMap = { 'JA': 'ja', 'ZH': 'zh-CN', 'KO': 'ko' };
+          const targetPair = `vi|${langMap[currentTargetLang]}`;
+          const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(rawWord)}&langpair=${targetPair}`);
+          
+          if (transRes.ok) {
+            const transData = await transRes.json();
+            if (transData && transData.responseData && transData.responseData.translatedText) {
+              const translatedWord = transData.responseData.translatedText;
+              return {
+                word: translatedWord,
+                phonetic: `${translatedWord} (Phát âm)`,
+                translationVi: rawWord,
+                explanationEn: `Multilingual vocabulary term for "${rawWord}".`,
+                exampleSentence: `Learning "${translatedWord}" boosts your ${currentTargetLang} fluency.`,
+                exampleTranslation: `Học "${rawWord}" giúp nâng cao trình độ của bạn.`
+              };
+            }
+          }
+        } catch(e) {}
+      }
+
+      // 6. Intelligent Dynamic NLP Translator Engine Fallback
       switch (currentTargetLang) {
         case 'KO':
           return {
