@@ -1,7 +1,7 @@
 /**
- * AI ENGINE SERVICE (ENHANCED SMART DICTIONARY EDITION)
+ * AI ENGINE SERVICE (SMART FUZZY DICTIONARY EDITION)
  * Handles AI Auto-fill generation for Vocab Vault & 3-Column Feedback Evaluation for 30s Roleplay Arena.
- * Guarantees response time < 1.0 seconds.
+ * Guarantees response time < 0.5 seconds.
  */
 
 class AIEngineService {
@@ -12,8 +12,8 @@ class AIEngineService {
       "pencil": {
         word: "Pencil",
         phonetic: "/ˈpen.səl/",
-        translationVi: "Cái bút chì (dụng cụ viết/vẽ bằng than chì)",
-        explanationEn: "An instrument for writing or drawing, consisting of a thin stick of graphite enclosed in wood.",
+        translationVi: "Cái bút chì (dụng cụ viết/vẽ)",
+        explanationEn: "An instrument for writing or drawing, consisting of a thin stick of graphite.",
         exampleSentence: "I need a sharp pencil to sketch this portrait.",
         exampleTranslation: "Tôi cần một chiếc bút chì gọt nhọn để phác thảo bức chân dung này."
       },
@@ -51,6 +51,14 @@ class AIEngineService {
         exampleSentence: "He signed the agreement with a gold pen.",
         exampleTranslation: "Anh ấy đã ký hợp đồng bằng một chiếc bút vàng."
       },
+      "bút": {
+        word: "Pen",
+        phonetic: "/pen/",
+        translationVi: "Cái bút",
+        explanationEn: "An instrument for writing with ink.",
+        exampleSentence: "She left her pen on the desk.",
+        exampleTranslation: "Cô ấy đã để quên chiếc bút trên bàn làm việc."
+      },
 
       // Book / Sách
       "book": {
@@ -61,13 +69,21 @@ class AIEngineService {
         exampleSentence: "Reading a good book before bed helps reduce stress.",
         exampleTranslation: "Đọc một cuốn sách hay trước khi đi ngủ giúp giảm bớt căng thẳng."
       },
-      "cuốn sách": {
+      "sách": {
         word: "Book",
         phonetic: "/bʊk/",
         translationVi: "Cuốn sách / Quyển sách",
         explanationEn: "A written or printed work bound in covers.",
         exampleSentence: "This book covers advanced grammar structures.",
         exampleTranslation: "Cuốn sách này bao gồm các cấu trúc ngữ pháp nâng cao."
+      },
+      "cuốn sách": {
+        word: "Book",
+        phonetic: "/bʊk/",
+        translationVi: "Cuốn sách",
+        explanationEn: "A written work bound together.",
+        exampleSentence: "I read an interesting book yesterday.",
+        exampleTranslation: "Tôi đã đọc một cuốn sách rất thú vị ngày hôm qua."
       },
 
       // Computer / Máy tính
@@ -139,24 +155,31 @@ class AIEngineService {
     const rawWord = (word || "").trim();
     const cleanKey = rawWord.toLowerCase();
     
-    // Simulate AI network delay (400ms)
-    await new Promise(resolve => setTimeout(resolve, 400));
+    // Simulate AI network delay (200ms)
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // Direct match in dictionary
     if (this.vocabDatabase[cleanKey]) {
       return this.vocabDatabase[cleanKey];
     }
 
+    // Fuzzy partial match
+    for (const k in this.vocabDatabase) {
+      if (cleanKey.includes(k) || k.includes(cleanKey)) {
+        return this.vocabDatabase[k];
+      }
+    }
+
     // Capitalize helper
     const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
 
-    // Smart fallback generator based on language
+    // Dynamic smart generator fallback
     switch (lang) {
       case 'JA':
         return {
           word: formattedWord,
           phonetic: `<ruby>${rawWord}<rt>よみ</rt></ruby>`,
-          translationVi: `Dịch nghĩa tiếng Việt cho từ "${rawWord}" (Tiếng Nhật)`,
+          translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Nhật)`,
           explanationEn: `Japanese expression indicating "${rawWord}" in daily context.`,
           exampleSentence: `<ruby>今日<rt>きょう</rt></ruby>は${rawWord}を<ruby>勉強<rt>べんきょう</rt></ruby>します。`,
           exampleTranslation: `Hôm nay tôi học từ ${rawWord}.`
@@ -165,7 +188,7 @@ class AIEngineService {
         return {
           word: formattedWord,
           phonetic: `<ruby>${rawWord}<rt>pīn yīn</rt></ruby>`,
-          translationVi: `Dịch nghĩa tiếng Việt cho từ "${rawWord}" (Tiếng Trung)`,
+          translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Trung)`,
           explanationEn: `Chinese vocabulary term for "${rawWord}".`,
           exampleSentence: `在日常生活中，${rawWord}非常实用。`,
           exampleTranslation: `Trong cuộc sống hàng ngày, ${rawWord} rất thực tế.`
@@ -174,7 +197,7 @@ class AIEngineService {
         return {
           word: formattedWord,
           phonetic: `${rawWord} (A1 Romaja)`,
-          translationVi: `Dịch nghĩa tiếng Việt cho từ "${rawWord}" (Tiếng Hàn)`,
+          translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Hàn)`,
           explanationEn: `Korean word indicating "${rawWord}".`,
           exampleSentence: `매일 ${rawWord}을/를 공부해요.`,
           exampleTranslation: `Mỗi ngày tôi đều học từ ${rawWord}.`
