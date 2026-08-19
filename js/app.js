@@ -319,32 +319,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const targetId = hashMap[hash] || 'view-dashboard';
 
-    // Update active navbar link
+    // 1. Update active navbar link styling
     document.querySelectorAll('.nav-link').forEach(link => {
-      if (link.getAttribute('data-target') === targetId || link.getAttribute('href') === hash) {
+      const linkTarget = link.getAttribute('data-target');
+      const linkHref = link.getAttribute('href');
+      if (linkTarget === targetId || linkHref === hash) {
         link.classList.add('active');
       } else {
         link.classList.remove('active');
       }
     });
 
-    // Update active view section
+    // 2. Explicitly toggle section visibility using both class and display style
     document.querySelectorAll('.view-section').forEach(sec => {
       if (sec.id === targetId) {
         sec.classList.add('active');
+        sec.style.display = 'block';
       } else {
         sec.classList.remove('active');
+        sec.style.display = 'none';
       }
     });
 
+    // 3. Trigger view-specific dynamic rendering
     if (targetId === 'view-vocabvault') {
       renderVocabTable();
     } else if (targetId === 'view-profile') {
       renderProfileStats();
+    } else if (targetId === 'view-dashboard') {
+      updateDashboardSkillProgress();
     }
   }
 
-  // Navigation Tabs
+  // Navigation Tabs Listener
   function setupNavigation() {
     window.addEventListener('hashchange', handleHashRoute);
 
@@ -359,21 +366,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    document.getElementById('nav-brand')?.addEventListener('click', () => {
+    document.getElementById('nav-brand')?.addEventListener('click', (e) => {
+      e.preventDefault();
       window.location.hash = '#dashboard';
       handleHashRoute();
     });
 
-    document.getElementById('dash-btn-continue')?.addEventListener('click', () => {
+    document.getElementById('dash-btn-continue')?.addEventListener('click', (e) => {
+      e.preventDefault();
       window.location.hash = '#studypath';
       handleHashRoute();
     });
 
-    document.getElementById('dash-btn-start-srs')?.addEventListener('click', () => {
+    document.getElementById('dash-btn-start-srs')?.addEventListener('click', (e) => {
+      e.preventDefault();
       openSRSModal();
     });
 
-    document.getElementById('btn-quick-srs')?.addEventListener('click', () => {
+    document.getElementById('btn-quick-srs')?.addEventListener('click', (e) => {
+      e.preventDefault();
       openSRSModal();
     });
   }
