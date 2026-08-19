@@ -1,15 +1,16 @@
 /**
  * REST API CLIENT SERVICE (FULLSTACK CLOUD INTEGRATION EDITION)
- * Connects Frontend (Netlify/Local) to Live Render Backend API (https://weleaning.onrender.com)
+ * Connects Frontend (GitHub Pages / Netlify / Local) to Live Render Backend API
  */
 
 class ApiService {
   constructor() {
     const origin = window.location.origin || '';
     if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      // Local dev: connect to local server
       this.baseUrl = origin;
     } else {
-      // Connect to Live Production Cloud Server on Render
+      // Production (GitHub Pages / Netlify / any domain): connect to Render Cloud
       this.baseUrl = 'https://weleaning.onrender.com';
     }
   }
