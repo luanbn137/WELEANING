@@ -386,6 +386,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     langSelect.addEventListener('change', async (e) => {
       state.currentLang = e.target.value;
+      state.vocabCurrentPage = 1;
       flagSpan.textContent = flagMap[state.currentLang] || '🌐';
       showToast(`Đã chuyển sang ngôn ngữ: ${state.currentLang}`, 'info');
       
@@ -1009,11 +1010,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateSRSBadgeCount();
     });
 
-    document.getElementById('filter-mastery').addEventListener('change', async () => {
+    document.getElementById('filter-mastery')?.addEventListener('change', async () => {
+      state.vocabCurrentPage = 1;
       await renderVocabTable();
     });
 
-    document.getElementById('btn-open-srs-mode').addEventListener('click', () => {
+    document.getElementById('inp-search-vocab')?.addEventListener('input', async () => {
+      state.vocabCurrentPage = 1;
+      await renderVocabTable();
+    });
+
+    document.getElementById('btn-open-srs-mode')?.addEventListener('click', () => {
       openSRSModal();
     });
   }
