@@ -873,12 +873,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         for (const targetLang of targetLangs) {
           const langData = allLangData[targetLang] || {};
-          const itemWord = (targetLang === state.currentLang) ? word : (langData.word || word);
-          const itemPhonetic = (targetLang === state.currentLang) ? phonetic : (langData.phonetic || '');
-          const itemTransVi = (targetLang === state.currentLang) ? transVi : (langData.translationVi || transVi);
-          const itemExpEn = (targetLang === state.currentLang) ? expEn : (langData.explanationEn || '');
-          const itemExSent = (targetLang === state.currentLang) ? exSentence : (langData.exampleSentence || '');
-          const itemExTrans = (targetLang === state.currentLang) ? exTrans : (langData.exampleTranslation || '');
+          let itemWord = langData.word;
+          let itemPhonetic = langData.phonetic || '';
+          let itemTransVi = langData.translationVi || transVi;
+          let itemExpEn = langData.explanationEn || expEn;
+          let itemExSent = langData.exampleSentence || exSentence;
+          let itemExTrans = langData.exampleTranslation || exTrans;
+
+          if (targetLang === state.currentLang) {
+            itemWord = word;
+            itemPhonetic = phonetic;
+            itemTransVi = transVi;
+            itemExpEn = expEn;
+            itemExSent = exSentence;
+            itemExTrans = exTrans;
+          }
+
+          if (!itemWord) itemWord = word;
 
           const itemVocab = {
             id: `vocab-${syncTimestamp}-${targetLang}`,
@@ -997,6 +1008,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     let items = Array.from(itemMap.values());
+
+    // Strict Language Filter: Ensure English list NEVER contains Chinese/Japanese/Korean text
+    items = items.filter(i => {
+      if (state.currentLang === 'EN') {
+        const isCJK = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]/.test(i.word);
+        return i.lang === 'EN' && !isCJK;
+      }
+      return i.lang === state.currentLang;
+    });
 
     // Filter by Mastery Level
     if (filterVal !== 'ALL') {

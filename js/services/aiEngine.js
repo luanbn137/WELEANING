@@ -38,6 +38,12 @@ class AIEngineService {
         "JA": { word: "<ruby>本<rt>ほん</rt></ruby>", phonetic: "Hon", translationVi: "Cuốn sách (Tiếng Nhật)", explanationEn: "Book in Japanese.", exampleSentence: "<ruby>図書館<rt>としょかん</rt></ruby>で<ruby>本<rt>ほん</rt></ruby>を<ruby>借<rt>か</rt></ruby>りました。", exampleTranslation: "Tôi đã mượn sách ở thư viện." },
         "ZH": { word: "<ruby>书本<rt>shū běn</rt></ruby>", phonetic: "shū běn", translationVi: "Sách (Tiếng Trung)", explanationEn: "Book in Chinese.", exampleSentence: "这是一本好书。", exampleTranslation: "Đây là một cuốn sách hay." },
         "KO": { word: "책", phonetic: "chaek", translationVi: "Sách (Tiếng Hàn)", explanationEn: "Book in Korean.", exampleSentence: "책을 읽어 보세요.", exampleTranslation: "Hãy thử đọc cuốn sách này." }
+      },
+      "铅笔": {
+        "EN": { word: "Pencil", phonetic: "/ˈpen.səl/", translationVi: "Cái bút chì", explanationEn: "Writing stick of graphite.", exampleSentence: "She wrote her draft with a pencil.", exampleTranslation: "Cô ấy đã viết bản thảo bằng một chiếc bút chì." },
+        "JA": { word: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>", phonetic: "Enpitsu", translationVi: "Cái bút chì (Tiếng Nhật)", explanationEn: "Japanese word for pencil.", exampleSentence: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>で書きます。", exampleTranslation: "Tôi viết bằng bút chì." },
+        "ZH": { word: "<ruby>铅笔<rt>qiān bǐ</rt></ruby>", phonetic: "qiān bǐ", translationVi: "Cái bút chì (Tiếng Trung)", explanationEn: "Chinese word for pencil.", exampleSentence: "这支铅笔很好用。", exampleTranslation: "Chiếc bút chì này dùng rất thích." },
+        "KO": { word: "연필", phonetic: "yeon-pil", translationVi: "Cái bút chì (Tiếng Hàn)", explanationEn: "Korean word for pencil.", exampleSentence: "연필을 주세요.", exampleTranslation: "Cho tôi xin chiếc bút chì." }
       }
     };
   }
