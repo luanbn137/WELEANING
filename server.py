@@ -353,6 +353,56 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
                 'user': logged_user
             })
 
+        # 2b. Forgot Password API
+        elif path == '/api/auth/forgot-password':
+            email = payload.get('email', '').strip()
+            new_pwd = payload.get('new_password', '').strip()
+
+            if not email or not new_pwd:
+                return self._send_json({'status': 'error', 'message': 'Vui lòng điền Email và Mật khẩu mới!'}, 400)
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            usr = cursor.execute("SELECT id FROM users WHERE email = ? OR username = ?", (email, email)).fetchone()
+
+            if not usr:
+                conn.close()
+                return self._send_json({'status': 'error', 'message': 'Không tìm thấy tài khoản với Email này!'}, 404)
+
+            new_hash = hash_password(new_pwd)
+            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, usr['id']))
+            conn.commit()
+            conn.close()
+
+            return self._send_json({'status': 'success', 'message': 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.'})
+
+        # 2c. Change Password API
+        elif path == '/api/auth/change-password':
+            if not user:
+                return self._send_json({'status': 'error', 'message': 'Chưa đăng nhập'}, 401)
+
+            curr_pwd = payload.get('current_password', '').strip()
+            new_pwd = payload.get('new_password', '').strip()
+
+            if not curr_pwd or not new_pwd:
+                return self._send_json({'status': 'error', 'message': 'Vui lòng nhập Mật khẩu hiện tại và Mật khẩu mới!'}, 400)
+
+            curr_hash = hash_password(curr_pwd)
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            check_usr = cursor.execute("SELECT id FROM users WHERE id = ? AND password_hash = ?", (user['id'], curr_hash)).fetchone()
+
+            if not check_usr:
+                conn.close()
+                return self._send_json({'status': 'error', 'message': 'Mật khẩu hiện tại không chính xác!'}, 400)
+
+            new_hash = hash_password(new_pwd)
+            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user['id']))
+            conn.commit()
+            conn.close()
+
+            return self._send_json({'status': 'success', 'message': 'Đã cập nhật mật khẩu mới thành công!'})
+
         # 3. Save Progress API
         elif path == '/api/progress':
             if not user:

@@ -87,6 +87,14 @@ class ApiService {
   async getAdminStats() {
     return this.request('/api/admin/stats', 'GET');
   }
+
+  async forgotPassword(email, newPassword) {
+    return this.request('/api/auth/forgot-password', 'POST', { email, new_password: newPassword });
+  }
+
+  async changePassword(currentPassword, newPassword) {
+    return this.request('/api/auth/change-password', 'POST', { current_password: currentPassword, new_password: newPassword });
+  }
 }
 
 window.apiService = new ApiService();

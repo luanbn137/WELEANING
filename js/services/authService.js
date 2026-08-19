@@ -1,6 +1,6 @@
 /**
  * AUTHENTICATION SERVICE
- * Handles User Registration, Login, Token Management, and Profile Sync
+ * Handles User Registration, Login, Forgot Password, Change Password, Token Management, and Profile Sync
  */
 
 class AuthService {
@@ -49,6 +49,14 @@ class AuthService {
       this.currentUser = res.user;
     }
     return res;
+  }
+
+  async forgotPassword(email, newPassword) {
+    return await window.apiService.forgotPassword(email, newPassword);
+  }
+
+  async changePassword(currentPassword, newPassword) {
+    return await window.apiService.changePassword(currentPassword, newPassword);
   }
 
   logout() {

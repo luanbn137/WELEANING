@@ -527,6 +527,26 @@
           </table>
         </div>
 
+        <!-- Change Password Card -->
+        <div style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; max-width: 520px;">
+          <h3 style="color: var(--accent-amber); display:flex; align-items:center; gap:0.5rem;">
+            <i class="fa-solid fa-lock"></i> Đổi Mật khẩu Cá nhân
+          </h3>
+          <form id="form-change-password" style="margin-top: 1rem;">
+            <div class="form-group" style="margin-bottom: 0.85rem;">
+              <label style="font-size:0.85rem;">Mật khẩu hiện tại</label>
+              <input type="password" id="change-curr-pwd" class="form-control" placeholder="••••••••" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label style="font-size:0.85rem;">Mật khẩu mới</label>
+              <input type="password" id="change-new-pwd" class="form-control" placeholder="Mật khẩu mới tối thiểu 6 ký tự" required>
+            </div>
+            <button type="submit" class="btn btn-warning btn-sm">
+              <i class="fa-solid fa-floppy-disk"></i> Cập nhật Mật khẩu mới
+            </button>
+          </form>
+        </div>
+
       </div>
     </section>
 
@@ -544,6 +564,7 @@
       <div class="input-mode-switcher" style="margin-bottom: 1.25rem;">
         <button class="mode-btn active" id="auth-tab-login">Đăng nhập</button>
         <button class="mode-btn" id="auth-tab-register">Đăng ký mới</button>
+        <button class="mode-btn" id="auth-tab-forgot">🔑 Quên MK</button>
       </div>
 
       <!-- LOGIN FORM -->
@@ -582,6 +603,21 @@
         </div>
         <button type="submit" class="btn btn-success" style="width:100%;">
           <i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản
+        </button>
+      </form>
+
+      <!-- FORGOT PASSWORD FORM -->
+      <form id="form-forgot" style="display:none;">
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>Email hoặc Tên đăng nhập tài khoản</label>
+          <input type="text" id="forgot-email" class="form-control" placeholder="nhapemail@gmail.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label>Mật khẩu mới</label>
+          <input type="password" id="forgot-password" class="form-control" placeholder="Nhập mật khẩu mới" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          <i class="fa-solid fa-key"></i> Đặt lại Mật khẩu
         </button>
       </form>
 

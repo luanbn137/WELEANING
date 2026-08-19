@@ -71,8 +71,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const tabLogin = document.getElementById('auth-tab-login');
     const tabRegister = document.getElementById('auth-tab-register');
+    const tabForgot = document.getElementById('auth-tab-forgot');
+    
     const formLogin = document.getElementById('form-login');
     const formRegister = document.getElementById('form-register');
+    const formForgot = document.getElementById('form-forgot');
     const modalTitle = document.getElementById('auth-modal-title');
 
     btnNavLogin.addEventListener('click', () => {
@@ -86,18 +89,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabLogin.addEventListener('click', () => {
       tabLogin.classList.add('active');
       tabRegister.classList.remove('active');
+      if (tabForgot) tabForgot.classList.remove('active');
       formLogin.style.display = 'block';
       formRegister.style.display = 'none';
+      if (formForgot) formForgot.style.display = 'none';
       modalTitle.innerHTML = `<i class="fa-solid fa-user-lock"></i> Đăng nhập hệ thống`;
     });
 
     tabRegister.addEventListener('click', () => {
       tabRegister.classList.add('active');
       tabLogin.classList.remove('active');
+      if (tabForgot) tabForgot.classList.remove('active');
       formRegister.style.display = 'block';
       formLogin.style.display = 'none';
+      if (formForgot) formForgot.style.display = 'none';
       modalTitle.innerHTML = `<i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản mới`;
     });
+
+    if (tabForgot) {
+      tabForgot.addEventListener('click', () => {
+        tabForgot.classList.add('active');
+        tabLogin.classList.remove('active');
+        tabRegister.classList.remove('active');
+        formForgot.style.display = 'block';
+        formLogin.style.display = 'none';
+        formRegister.style.display = 'none';
+        modalTitle.innerHTML = `<i class="fa-solid fa-key"></i> Khôi phục Mật khẩu`;
+      });
+    }
 
     // Login Submission
     formLogin.addEventListener('submit', async (e) => {
@@ -140,6 +159,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast(res.message || "Đăng ký thất bại!", "error");
       }
     });
+
+    // Forgot Password Submission
+    if (formForgot) {
+      formForgot.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('forgot-email').value;
+        const newPwd = document.getElementById('forgot-password').value;
+
+        showToast("Đang gửi yêu cầu đặt lại mật khẩu...", "info");
+        const res = await window.authService.forgotPassword(email, newPwd);
+
+        if (res.status === 'success') {
+          showToast(res.message || "Đặt lại mật khẩu thành công!", "success");
+          tabLogin.click();
+        } else {
+          showToast(res.message || "Không thể đặt lại mật khẩu!", "error");
+        }
+      });
+    }
+
+    // Change Password Submission (Profile View)
+    const formChangePwd = document.getElementById('form-change-password');
+    if (formChangePwd) {
+      formChangePwd.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currPwd = document.getElementById('change-curr-pwd').value;
+        const newPwd = document.getElementById('change-new-pwd').value;
+
+        showToast("Đang cập nhật mật khẩu mới...", "info");
+        const res = await window.authService.changePassword(currPwd, newPwd);
+
+        if (res.status === 'success') {
+          showToast(res.message || "Đã đổi mật khẩu thành công!", "success");
+          document.getElementById('change-curr-pwd').value = '';
+          document.getElementById('change-new-pwd').value = '';
+        } else {
+          showToast(res.message || "Đổi mật khẩu thất bại!", "error");
+        }
+      });
+    }
   }
 
   function updateAuthNavbarUI() {
