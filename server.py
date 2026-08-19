@@ -126,6 +126,30 @@ def init_database():
     );
     """)
 
+    # 5. Massive Dictionary Table (400,000+ words index capability)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS dictionary_400k (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        keywords TEXT,
+        category TEXT DEFAULT 'Tổng hợp',
+        word_en TEXT,
+        phonetic_en TEXT,
+        trans_vi TEXT,
+        def_en TEXT,
+        ex_en TEXT,
+        ex_vi TEXT,
+        word_ja TEXT,
+        phonetic_ja TEXT,
+        word_zh TEXT,
+        phonetic_zh TEXT,
+        word_ko TEXT,
+        phonetic_ko TEXT
+    );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_dict_keywords ON dictionary_400k(keywords);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_dict_word_en ON dictionary_400k(word_en);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_dict_trans_vi ON dictionary_400k(trans_vi);")
+
     # Seed Default Demo User if empty
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
@@ -242,6 +266,39 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
                 rows = conn.execute("SELECT * FROM vocab_vault ORDER BY created_at DESC").fetchall()
                 conn.close()
                 return self._send_json({'status': 'success', 'vocab': [dict(r) for r in rows]})
+
+            elif path == '/api/dictionary/search':
+                query_params = parse_qs(parsed.query)
+                q = query_params.get('q', [''])[0].strip().lower()
+                
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                
+                if q:
+                    search_pattern = f"%{q}%"
+                    cursor.execute("""
+                    SELECT * FROM dictionary_400k 
+                    WHERE keywords LIKE ? OR word_en LIKE ? OR trans_vi LIKE ? 
+                    LIMIT 50
+                    """, (search_pattern, search_pattern, search_pattern))
+                else:
+                    cursor.execute("SELECT * FROM dictionary_400k ORDER BY id ASC LIMIT 50")
+                
+                rows = cursor.fetchall()
+                conn.close()
+                
+                results = []
+                for r in rows:
+                    results.append({
+                        'id': f"dict-db-{r['id']}",
+                        'category': r['category'] or 'Tổng hợp',
+                        'EN': {'word': r['word_en'], 'phonetic': r['phonetic_en'], 'translationVi': r['trans_vi'], 'explanationEn': r['def_en'], 'exampleSentence': r['ex_en'], 'exampleTranslation': r['ex_vi']},
+                        'JA': {'word': r['word_ja'] or r['word_en'], 'phonetic': r['phonetic_ja'] or '', 'translationVi': r['trans_vi'], 'explanationEn': r['def_en'], 'exampleSentence': r['ex_en'], 'exampleTranslation': r['ex_vi']},
+                        'ZH': {'word': r['word_zh'] or r['word_en'], 'phonetic': r['phonetic_zh'] or '', 'translationVi': r['trans_vi'], 'explanationEn': r['def_en'], 'exampleSentence': r['ex_en'], 'exampleTranslation': r['ex_vi']},
+                        'KO': {'word': r['word_ko'] or r['word_en'], 'phonetic': r['phonetic_ko'] or '', 'translationVi': r['trans_vi'], 'explanationEn': r['def_en'], 'exampleSentence': r['ex_en'], 'exampleTranslation': r['ex_vi']}
+                    })
+                
+                return self._send_json({'status': 'success', 'results': results})
 
             elif path == '/api/admin/stats':
                 conn = get_db_connection()
