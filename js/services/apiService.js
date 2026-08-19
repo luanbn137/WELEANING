@@ -39,7 +39,7 @@ class ApiService {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout for cloud cold starts
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for cloud cold starts
       config.signal = controller.signal;
 
       const res = await fetch(`${this.baseUrl}${endpoint}`, config);
@@ -47,7 +47,7 @@ class ApiService {
       const resData = await res.json();
       return resData;
     } catch (err) {
-      console.log(`[Offline Fallback Mode] Using local browser storage for ${endpoint}`);
+      console.log(`[Offline Fallback Mode] Using local browser storage for ${endpoint}:`, err);
       return { 
         status: 'offline', 
         message: 'Đang dùng chế độ lưu trữ trình duyệt (LocalStorage)' 
