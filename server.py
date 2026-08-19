@@ -166,7 +166,34 @@ def init_database():
         VALUES ('admin', 'admin@vocabapp.edu.vn', ?, 'Giảng Viên Quản Trị', 'admin', 14, 1500, 500)
         """, (admin_hash,))
 
+    # Seed Default Vocab Items if vocab_vault is empty
+    cursor.execute("SELECT COUNT(*) FROM vocab_vault WHERE created_by IS NULL OR created_by = 'system'")
+    if cursor.fetchone()[0] == 0:
+        default_vocab = [
+            ('EN', 'Curiosity', '/ˌkjʊəˈrɪɒsəti/', 'Sự tò mò, lòng ham học hỏi', 'A strong desire to know or learn something.', 'Her curiosity drove her to explore foreign languages.', 'Lòng ham học hỏi đã thôi thúc cô ấy khám phá các ngôn ngữ nước ngoài.', 5, 'system'),
+            ('EN', 'Punctual', '/ˈpʌŋktʃuəl/', 'Đúng giờ', 'Doing something at the agreed or proper time.', 'Please be punctual for the 9:00 AM meeting.', 'Xin vui lòng đến đúng giờ cho cuộc họp lúc 9:00 sáng.', 5, 'system'),
+            ('EN', 'Negotiate', '/nɪˈɡəʊʃieɪt/', 'Đàm phán, thương lượng', 'Try to reach an agreement or compromise by discussion.', 'We need to negotiate a better deal at the market.', 'Chúng ta cần thương lượng để có mức giá tốt hơn tại chợ.', 5, 'system'),
+            ('EN', 'Perseverance', '/ˌpɜːsɪˈvɪərəns/', 'Sự kiên trì, bền bỉ', 'Continued effort despite difficulty or delay.', 'Perseverance is the key to mastering any language.', 'Sự kiên trì là chìa khóa để thành thạo bất kỳ ngôn ngữ nào.', 4, 'system'),
+            ('EN', 'Eloquent', '/ˈeləkwənt/', 'Hùng hồn, lưu loát', 'Fluent or persuasive in speaking or writing.', 'She gave an eloquent speech at the graduation ceremony.', 'Cô ấy đã có bài phát biểu hùng hồn tại lễ tốt nghiệp.', 4, 'system'),
+            ('EN', 'Ambitious', '/æmˈbɪʃəs/', 'Tham vọng, có chí lớn', 'Having a strong desire to achieve something.', 'He is ambitious about becoming a software engineer.', 'Anh ấy có tham vọng trở thành kỹ sư phần mềm.', 3, 'system'),
+            ('EN', 'Resilience', '/rɪˈzɪliəns/', 'Sức bật, khả năng phục hồi', 'The capacity to recover quickly from difficulties.', 'Resilience helped her overcome every challenge.', 'Sức bật đã giúp cô ấy vượt qua mọi thử thách.', 4, 'system'),
+            ('EN', 'Collaborate', '/kəˈlæbəreɪt/', 'Hợp tác, cộng tác', 'To work jointly on an activity or project.', 'Students collaborate on group projects to learn together.', 'Học sinh hợp tác trong các dự án nhóm để cùng học hỏi.', 3, 'system'),
+            ('JA', '勉強', 'べんきょう (Benkyō)', 'Học tập, nghiên cứu', 'To study or learn something.', '毎日日本語を勉強しています。', 'Tôi học tiếng Nhật mỗi ngày.', 3, 'system'),
+            ('JA', '友達', 'ともだち (Tomodachi)', 'Bạn bè', 'Friend or companion.', '友達と一緒に図書館で勉強します。', 'Tôi học ở thư viện cùng với bạn bè.', 4, 'system'),
+            ('ZH', '学习', 'Xuéxí', 'Học tập, nghiên cứu', 'To study or learn.', '我每天学习中文。', 'Tôi học tiếng Trung mỗi ngày.', 3, 'system'),
+            ('ZH', '朋友', 'Péngyǒu', 'Bạn bè', 'Friend.', '我和朋友一起去图书馆。', 'Tôi và bạn bè cùng đến thư viện.', 4, 'system'),
+            ('KO', '공부', 'Gongbu', 'Học tập', 'To study.', '저는 매일 한국어를 공부합니다.', 'Tôi học tiếng Hàn mỗi ngày.', 3, 'system'),
+            ('KO', '친구', 'Chingu', 'Bạn bè', 'Friend.', '친구와 함께 공부합니다.', 'Tôi học cùng bạn bè.', 4, 'system'),
+            ('EN', 'Vocabulary', '/vəˈkæbjʊləri/', 'Từ vựng', 'The body of words used in a particular language.', 'Building vocabulary is essential for language learning.', 'Xây dựng từ vựng là điều cần thiết để học ngôn ngữ.', 5, 'system'),
+        ]
+        for v in default_vocab:
+            cursor.execute("""
+            INSERT INTO vocab_vault (lang, word, phonetic, translation_vi, explanation_en, example_sentence, example_translation, mastery_level, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, v)
+
     conn.commit()
+
     conn.close()
     print("Database initialized successfully at database.db!")
 
