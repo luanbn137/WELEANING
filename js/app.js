@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     timerInterval: null,
     timerRunning: false,
 
+    // Pagination state
+    vocabCurrentPage: 1,
+    vocabPageSize: 5,
+
     // SRS State
     srsQueue: [],
     srsIndex: 0,
@@ -53,17 +57,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     await window.authService.init();
     updateAuthNavbarUI();
 
-    // Initial Render
+    // Initial Render (show local data immediately)
     renderCurrentWeek();
     await renderVocabTable();
     await updateDashboardSkillProgress();
     updateSRSBadgeCount();
     updateStreakDisplay();
 
-    // Real-time Cloud Sync Polling across devices (every 10s)
+    // Wake up Render Cloud Server in background (free tier sleeps after 15min)
+    wakeUpServerAndSync();
+
+    // Real-time Cloud Sync Polling across devices (every 15s)
     setInterval(async () => {
       await renderVocabTable();
-    }, 10000);
+    }, 15000);
+  }
+
+  // Wake up the Render server and sync vocab once it's awake
+  async function wakeUpServerAndSync() {
+    const badge = document.getElementById('sync-status-badge');
+    if (badge) badge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" style="color:#f59e0b; font-size:0.7rem;"></i> Đang kết nối Cloud...`;
+
+    const maxAttempts = 8; // try up to 8 times over ~40 seconds
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await window.apiService.getVocab();
+        if (res && res.status === 'success') {
+          // Server is awake! Refresh the vocab table with live data
+          await renderVocabTable();
+          return;
+        }
+      } catch(e) {
+        // Server still cold-starting, wait and retry
+      }
+
+      if (badge) badge.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" style="color:#f59e0b; font-size:0.7rem;"></i> Đang đợi Server (${attempt}/${maxAttempts})...`;
+      await new Promise(r => setTimeout(r, 6000)); // wait 6s between attempts
+    }
+
+    // After all attempts, show offline state
+    if (badge) badge.innerHTML = `<i class="fa-solid fa-circle" style="color:#ef4444; font-size:0.6rem;"></i> Server Offline - Dùng dữ liệu cục bộ`;
   }
 
   /* ==========================================================================
@@ -1076,10 +1109,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (items.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;" class="text-muted">Chưa có từ vựng nào trong danh sách. Hãy thêm mới phía trên!</td></tr>`;
+      renderVocabPagination(0, 0);
       return;
     }
 
-    items.forEach(item => {
+    // Pagination
+    const totalPages = Math.ceil(items.length / state.vocabPageSize);
+    if (state.vocabCurrentPage > totalPages) state.vocabCurrentPage = totalPages;
+    if (state.vocabCurrentPage < 1) state.vocabCurrentPage = 1;
+    const startIdx = (state.vocabCurrentPage - 1) * state.vocabPageSize;
+    const pageItems = items.slice(startIdx, startIdx + state.vocabPageSize);
+    renderVocabPagination(totalPages, items.length);
+
+    pageItems.forEach(item => {
       const contributorBadge = (item.createdBy && item.createdBy !== 'admin') 
         ? `<div style="font-size:0.75rem; color:var(--accent-cyan); margin-top:0.25rem; font-weight:500;"><i class="fa-solid fa-user-pen"></i> Thêm bởi: ${item.createdBy}</div>` 
         : '';
@@ -1150,6 +1192,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       tbody.appendChild(tr);
     });
+  }
+
+  function renderVocabPagination(totalPages, totalItems) {
+    let paginationEl = document.getElementById('vocab-pagination');
+    if (!paginationEl) return;
+
+    if (totalPages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+
+    const currentPage = state.vocabCurrentPage;
+    const startItem = (currentPage - 1) * state.vocabPageSize + 1;
+    const endItem = Math.min(currentPage * state.vocabPageSize, totalItems);
+
+    let pageButtonsHtml = '';
+    for (let i = 1; i <= totalPages; i++) {
+      const isActive = i === currentPage;
+      pageButtonsHtml += `
+        <button class="vocab-page-btn" data-page="${i}" style="
+          padding:0.3rem 0.65rem; border-radius:8px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
+          background:${isActive ? 'var(--primary)' : 'transparent'}; color:${isActive ? '#fff' : 'var(--text-dim)'};
+          cursor:pointer; font-size:0.85rem; font-weight:${isActive ? '700' : '400'}; transition:all 0.2s;
+        ">${i}</button>
+      `;
+    }
+
+    paginationEl.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; padding:0.75rem 0; flex-wrap:wrap;">
+        <button id="vocab-prev-page" style="padding:0.3rem 0.75rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text-dim); cursor:pointer; font-size:0.85rem; ${currentPage === 1 ? 'opacity:0.3; pointer-events:none;' : ''}">
+          <i class="fa-solid fa-chevron-left"></i> Trước
+        </button>
+        ${pageButtonsHtml}
+        <button id="vocab-next-page" style="padding:0.3rem 0.75rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:var(--text-dim); cursor:pointer; font-size:0.85rem; ${currentPage === totalPages ? 'opacity:0.3; pointer-events:none;' : ''}">
+          Tiếp <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <span style="font-size:0.8rem; color:var(--text-dim); margin-left:0.5rem;">Hiển thị ${startItem}–${endItem} / ${totalItems} từ</span>
+      </div>
+    `;
+
+    // Page button click
+    paginationEl.querySelectorAll('.vocab-page-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.vocabCurrentPage = parseInt(btn.getAttribute('data-page'));
+        renderVocabTable();
+      });
+    });
+    const prevBtn = document.getElementById('vocab-prev-page');
+    const nextBtn = document.getElementById('vocab-next-page');
+    if (prevBtn) prevBtn.addEventListener('click', () => { state.vocabCurrentPage--; renderVocabTable(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { state.vocabCurrentPage++; renderVocabTable(); });
   }
 
   /* ==========================================================================

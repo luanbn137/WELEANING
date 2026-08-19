@@ -300,6 +300,9 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
                 
                 return self._send_json({'status': 'success', 'results': results})
 
+            elif path == '/api/ping':
+                return self._send_json({'status': 'ok', 'message': 'Server awake!'})
+
             elif path == '/api/admin/stats':
                 conn = get_db_connection()
                 total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
