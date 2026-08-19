@@ -1031,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. Build item map starting from empty - Server is SOURCE OF TRUTH
     const itemMap = new Map();
 
-    // 2. Always fetch from Server Cloud first (source of truth for multi-device sync)
+    // 2. Fetch from Server Cloud (Supabase)
     let serverConnected = false;
     try {
       const res = await window.apiService.getVocab();
@@ -1040,52 +1040,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.vocabRepo.syncServerItems(res.vocab);
         res.vocab.forEach(i => {
           if (i.lang === state.currentLang || (!i.lang && state.currentLang === 'EN')) {
-            itemMap.set(i.id, {
-              id: i.id,
-              lang: i.lang || state.currentLang,
-              word: i.word,
-              phonetic: i.phonetic || '',
-              translationVi: i.translation_vi || i.translationVi || '',
-              explanationEn: i.explanation_en || i.explanationEn || '',
-              exampleSentence: i.example_sentence || i.exampleSentence || '',
-              exampleTranslation: i.example_translation || i.exampleTranslation || '',
-              masteryLevel: i.mastery_level || i.masteryLevel || 1,
-              createdBy: i.created_by || i.createdBy || null
-            });
+            const cleanW = (i.word || '').replace(/<[^>]*>/g, '').trim();
+            if (cleanW) {
+              itemMap.set(`server-${i.id}`, {
+                id: i.id,
+                lang: i.lang || state.currentLang,
+                word: cleanW,
+                phonetic: i.phonetic || '',
+                translationVi: i.translation_vi || i.translationVi || '',
+                explanationEn: i.explanation_en || i.explanationEn || '',
+                exampleSentence: (i.example_sentence || i.exampleSentence || '').replace(/<[^>]*>/g, ''),
+                exampleTranslation: (i.example_translation || i.exampleTranslation || '').replace(/<[^>]*>/g, ''),
+                masteryLevel: i.mastery_level || i.masteryLevel || 1,
+                createdBy: i.created_by || i.createdBy || null
+              });
+            }
           }
         });
       }
     } catch(err) {
-      console.warn("Server unreachable, using local storage:", err);
+      console.warn("Server fetch error, using local cache:", err);
     }
 
-    // 3. Fallback: If server offline, show local cached items (excluding seed defaults)
-    if (!serverConnected) {
-      const localItems = window.vocabRepo.getAll().filter(i => !i.id.startsWith('vocab-en-') && !i.id.startsWith('vocab-ja-') && !i.id.startsWith('vocab-zh-') && !i.id.startsWith('vocab-ko-') && !String(i.id).match(/^vocab-[0-9]+$/) && !i.id.startsWith('vocab-8') && !i.id.startsWith('vocab-9') && !i.id.startsWith('vocab-10') && !i.id.startsWith('vocab-11'));
-      localItems.forEach(i => {
-        if (i.lang === state.currentLang) {
-          itemMap.set(i.id, {
-            id: i.id,
-            lang: i.lang,
-            word: i.word,
-            phonetic: i.phonetic || '',
-            translationVi: i.translationVi || i.translation_vi || '',
-            explanationEn: i.explanationEn || i.explanation_en || '',
-            exampleSentence: i.exampleSentence || i.example_sentence || '',
-            exampleTranslation: i.exampleTranslation || i.example_translation || '',
-            masteryLevel: i.masteryLevel || i.mastery_level || 1,
-            createdBy: i.createdBy || i.created_by || null
-          });
+    // 3. Always merge Local Items (LocalStorage) for 0s instant latency
+    const localItems = window.vocabRepo.getAll();
+    localItems.forEach(i => {
+      if (i.lang === state.currentLang || (!i.lang && state.currentLang === 'EN')) {
+        const cleanW = (i.word || '').replace(/<[^>]*>/g, '').trim();
+        if (cleanW) {
+          const alreadyInMap = Array.from(itemMap.values()).some(existing => 
+            existing.word.toLowerCase() === cleanW.toLowerCase()
+          );
+          if (!alreadyInMap) {
+            itemMap.set(i.id, {
+              id: i.id,
+              lang: i.lang || state.currentLang,
+              word: cleanW,
+              phonetic: i.phonetic || '',
+              translationVi: i.translationVi || i.translation_vi || '',
+              explanationEn: i.explanationEn || i.explanation_en || '',
+              exampleSentence: (i.exampleSentence || i.example_sentence || '').replace(/<[^>]*>/g, ''),
+              exampleTranslation: (i.exampleTranslation || i.example_translation || '').replace(/<[^>]*>/g, ''),
+              masteryLevel: i.masteryLevel || i.mastery_level || 1,
+              createdBy: i.createdBy || i.created_by || null
+            });
+          }
         }
-      });
-    }
+      }
+    });
 
     // Update sync status indicator
     const syncBadge = document.getElementById('sync-status-badge');
     if (syncBadge) {
       syncBadge.innerHTML = serverConnected 
-        ? `<i class="fa-solid fa-circle" style="color:#22c55e; font-size:0.6rem;"></i> Đã đồng bộ Cloud`
-        : `<i class="fa-solid fa-circle" style="color:#f59e0b; font-size:0.6rem;"></i> Offline (Cache)`;
+        ? `<i class="fa-solid fa-circle" style="color:#22c55e; font-size:0.6rem;"></i> Đã đồng bộ Supabase Cloud`
+        : `<i class="fa-solid fa-circle" style="color:#f59e0b; font-size:0.6rem;"></i> Chế độ Offline (Cache)`;
     }
 
     let items = Array.from(itemMap.values());
@@ -1512,35 +1521,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.addEventListener('click', async (e) => {
         const targetBtn = e.currentTarget;
         if (targetBtn.disabled) return;
-        targetBtn.disabled = true;
 
         const id = targetBtn.getAttribute('data-id');
         const targetLang = targetBtn.getAttribute('data-lang');
         const dictItem = dict.find(d => d.id === id);
 
         if (dictItem && dictItem[targetLang]) {
+          targetBtn.disabled = true;
           const lData = dictItem[targetLang];
           const user = window.authService.getUser();
           const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
 
+          // Strip HTML ruby/rt tags for clean word & sentence storage
+          const cleanWord = (lData.word || '').replace(/<[^>]*>/g, '').trim();
+          const cleanSentence = (lData.exampleSentence || '').replace(/<[^>]*>/g, '').trim();
+          const cleanExTrans = (lData.exampleTranslation || '').replace(/<[^>]*>/g, '').trim();
+
           const vocabItem = {
             id: `vocab-${Date.now()}-${targetLang}`,
             lang: targetLang,
-            word: lData.word,
+            word: cleanWord,
             phonetic: lData.phonetic || '',
-            translation_vi: lData.translationVi,
-            explanation_en: lData.explanationEn,
-            example_sentence: lData.exampleSentence,
-            example_translation: lData.exampleTranslation,
+            translation_vi: lData.translationVi || '',
+            explanation_en: lData.explanationEn || '',
+            example_sentence: cleanSentence,
+            example_translation: cleanExTrans,
             week_num: state.currentWeek,
             mastery_level: 1,
             created_by: createdBy
           };
 
+          // 1. Add locally for instant rendering
           window.vocabRepo.add({
             id: vocabItem.id,
             lang: targetLang,
-            word: vocabItem.word,
+            word: cleanWord,
             phonetic: vocabItem.phonetic,
             translationVi: vocabItem.translation_vi,
             explanationEn: vocabItem.explanation_en,
@@ -1551,12 +1566,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             createdBy: createdBy
           });
 
+          // 2. Save to Supabase Cloud DB
           await window.apiService.saveVocab(vocabItem);
+
+          // 3. Immediately re-render table
           await renderVocabTable();
 
-          targetBtn.innerHTML = `<i class="fa-solid fa-check"></i> Đã thêm`;
-          targetBtn.style.background = 'var(--secondary)';
-          showToast(`✨ Đã thêm từ vựng "${lData.word}" vào Sổ từ vựng (${targetLang})!`, "success");
+          // 4. Update button visual feedback
+          targetBtn.innerHTML = `<i class="fa-solid fa-check"></i> Đã thêm vào Sổ từ`;
+          targetBtn.style.background = '#10b981';
+          targetBtn.style.color = '#ffffff';
+
+          showToast(`✨ Đã thêm từ "${cleanWord}" vào Sổ từ (${targetLang})!`, "success");
         }
       });
     });
