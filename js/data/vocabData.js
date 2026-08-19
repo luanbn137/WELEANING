@@ -308,6 +308,29 @@ class VocabRepository {
     localStorage.setItem(this.storageKey, JSON.stringify(this.items));
   }
 
+  syncServerItems(serverItems) {
+    if (!Array.isArray(serverItems)) return;
+    const itemMap = new Map();
+    this.items.forEach(i => itemMap.set(i.id, i));
+    serverItems.forEach(s => {
+      itemMap.set(s.id, {
+        id: s.id,
+        lang: s.lang || 'EN',
+        word: s.word,
+        phonetic: s.phonetic || '',
+        translationVi: s.translation_vi || s.translationVi || '',
+        explanationEn: s.explanation_en || s.explanationEn || '',
+        exampleSentence: s.example_sentence || s.exampleSentence || '',
+        exampleTranslation: s.example_translation || s.exampleTranslation || '',
+        weekNum: s.week_num || 1,
+        masteryLevel: s.mastery_level || s.masteryLevel || 1,
+        createdBy: s.created_by || s.createdBy || null
+      });
+    });
+    this.items = Array.from(itemMap.values());
+    this.saveToStorage();
+  }
+
   getAll() {
     return this.items;
   }

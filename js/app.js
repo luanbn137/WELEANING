@@ -992,6 +992,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await window.apiService.getVocab();
       if (res && res.status === 'success' && Array.isArray(res.vocab)) {
+        window.vocabRepo.syncServerItems(res.vocab);
         res.vocab.forEach(i => {
           if (i.lang === state.currentLang || (!i.lang && state.currentLang === 'EN')) {
             itemMap.set(i.id, {
