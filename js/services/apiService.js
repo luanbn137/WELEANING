@@ -1,8 +1,6 @@
 /**
- * REST API CLIENT SERVICE (SMART HYBRID CLOUD & LOCALSTORAGE EDITION)
- * Handles dual-mode operations:
- * - Server Online: Syncs with Python SQLite Backend Server (/api/*)
- * - Netlify Online / Server Offline: Gracefully handles local persistence via LocalStorage!
+ * REST API CLIENT SERVICE (FULLSTACK CLOUD INTEGRATION EDITION)
+ * Connects Frontend (Netlify/Local) to Live Render Backend API (https://weleaning.onrender.com)
  */
 
 class ApiService {
@@ -11,7 +9,8 @@ class ApiService {
     if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
       this.baseUrl = origin;
     } else {
-      this.baseUrl = 'http://localhost:8080';
+      // Connect to Live Production Cloud Server on Render
+      this.baseUrl = 'https://weleaning.onrender.com';
     }
   }
 
@@ -40,7 +39,7 @@ class ApiService {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s connection timeout
+      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout for cloud cold starts
       config.signal = controller.signal;
 
       const res = await fetch(`${this.baseUrl}${endpoint}`, config);
@@ -48,8 +47,7 @@ class ApiService {
       const resData = await res.json();
       return resData;
     } catch (err) {
-      // Fallback for Netlify / Offline deployments
-      console.log(`[Offline Mode] Using local browser storage for ${endpoint}`);
+      console.log(`[Offline Fallback Mode] Using local browser storage for ${endpoint}`);
       return { 
         status: 'offline', 
         message: 'Đang dùng chế độ lưu trữ trình duyệt (LocalStorage)' 
