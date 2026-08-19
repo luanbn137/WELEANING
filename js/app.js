@@ -1,0 +1,877 @@
+/**
+ * MAIN APPLICATION CONTROLLER (FULLSTACK CAPSTONE EDITION)
+ * Integrates User Authentication, 2-Way REST API DB Synchronization,
+ * 30s Roleplay Arena Engine, Pop-up Dictionary, and Admin Capstone Stats.
+ */
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Global Application State
+  const state = {
+    currentLang: 'EN',
+    currentLevel: 'A2',
+    currentWeek: 1,
+    currentModule: 'module-grammar',
+    audioSpeed: 1.0,
+    inputMode: 'text',
+    
+    // 30s Timer State
+    timerLeft: 30,
+    timerInterval: null,
+    timerRunning: false,
+
+    // SRS State
+    srsQueue: [],
+    srsIndex: 0,
+    srsFlipped: false
+  };
+
+  // Flag map
+  const flagMap = {
+    'EN': '🇬🇧',
+    'JA': '🇯🇵',
+    'ZH': '🇨🇳',
+    'KO': '🇰🇷'
+  };
+
+  /* ==========================================================================
+     INIT & ROUTER EVENT LISTENERS
+     ========================================================================== */
+
+  async function initApp() {
+    setupNavigation();
+    setupAuthSystem();
+    setupLanguageAndLevelSelectors();
+    setupWeekSelector();
+    setupModuleTabs();
+    setupReadingLab();
+    setupRoleplayArena();
+    setupVocabVault();
+    setupSRSModal();
+    
+    // Initialize Auth Session
+    await window.authService.init();
+    updateAuthNavbarUI();
+
+    // Initial Render
+    renderCurrentWeek();
+    await renderVocabTable();
+    updateSRSBadgeCount();
+    updateStreakDisplay();
+  }
+
+  /* ==========================================================================
+     AUTHENTICATION SYSTEM HANDLERS
+     ========================================================================== */
+
+  function setupAuthSystem() {
+    const btnNavLogin = document.getElementById('btn-nav-login');
+    const modalAuth = document.getElementById('modal-auth');
+    const btnCloseAuth = document.getElementById('btn-close-auth-modal');
+    
+    const tabLogin = document.getElementById('auth-tab-login');
+    const tabRegister = document.getElementById('auth-tab-register');
+    const formLogin = document.getElementById('form-login');
+    const formRegister = document.getElementById('form-register');
+    const modalTitle = document.getElementById('auth-modal-title');
+
+    btnNavLogin.addEventListener('click', () => {
+      modalAuth.classList.add('active');
+    });
+
+    btnCloseAuth.addEventListener('click', () => {
+      modalAuth.classList.remove('active');
+    });
+
+    tabLogin.addEventListener('click', () => {
+      tabLogin.classList.add('active');
+      tabRegister.classList.remove('active');
+      formLogin.style.display = 'block';
+      formRegister.style.display = 'none';
+      modalTitle.innerHTML = `<i class="fa-solid fa-user-lock"></i> Đăng nhập hệ thống`;
+    });
+
+    tabRegister.addEventListener('click', () => {
+      tabRegister.classList.add('active');
+      tabLogin.classList.remove('active');
+      formRegister.style.display = 'block';
+      formLogin.style.display = 'none';
+      modalTitle.innerHTML = `<i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản mới`;
+    });
+
+    // Login Submission
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const pwd = document.getElementById('login-password').value;
+
+      showToast("Đang xác thực tài khoản...", "info");
+      const res = await window.authService.login(email, pwd);
+
+      if (res.status === 'success') {
+        showToast(`Chào mừng ${res.user.full_name} quay trở lại!`, "success");
+        modalAuth.classList.remove('active');
+        updateAuthNavbarUI();
+        await renderVocabTable();
+        renderProfileStats();
+      } else {
+        showToast(res.message || "Đăng nhập thất bại!", "error");
+      }
+    });
+
+    // Register Submission
+    formRegister.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fullname = document.getElementById('reg-fullname').value;
+      const username = document.getElementById('reg-username').value;
+      const email = document.getElementById('reg-email').value;
+      const pwd = document.getElementById('reg-password').value;
+
+      showToast("Đang khởi tạo tài khoản trên Server DB...", "info");
+      const res = await window.authService.register(username, email, pwd, fullname);
+
+      if (res.status === 'success') {
+        showToast("Đăng ký tài khoản thành công!", "success");
+        modalAuth.classList.remove('active');
+        updateAuthNavbarUI();
+        await renderVocabTable();
+        renderProfileStats();
+      } else {
+        showToast(res.message || "Đăng ký thất bại!", "error");
+      }
+    });
+  }
+
+  function updateAuthNavbarUI() {
+    const container = document.getElementById('nav-auth-container');
+    const user = window.authService.getUser();
+
+    if (user) {
+      const initial = (user.full_name || user.username || 'U')[0].toUpperCase();
+      container.innerHTML = `
+        <div class="user-profile-badge">
+          <div class="user-avatar">${initial}</div>
+          <div style="display:flex; flex-direction:column;">
+            <span style="font-size:0.85rem; font-weight:700; color:#fff;">${user.full_name || user.username}</span>
+            <span class="user-role-pill">${user.role}</span>
+          </div>
+          <button class="btn-logout" id="btn-logout-act" title="Đăng xuất"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+      `;
+
+      document.getElementById('btn-logout-act').addEventListener('click', () => {
+        window.authService.logout();
+        showToast("Đã đăng xuất tài khoản.", "info");
+        updateAuthNavbarUI();
+        renderVocabTable();
+      });
+    } else {
+      container.innerHTML = `
+        <button class="btn btn-primary btn-sm" id="btn-nav-login">
+          <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+        </button>
+      `;
+      document.getElementById('btn-nav-login').addEventListener('click', () => {
+        document.getElementById('modal-auth').classList.add('active');
+      });
+    }
+  }
+
+  // Navigation Tabs
+  function setupNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.view-section');
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('data-target');
+        
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+
+        sections.forEach(sec => {
+          if (sec.id === targetId) {
+            sec.classList.add('active');
+          } else {
+            sec.classList.remove('active');
+          }
+        });
+
+        if (targetId === 'view-vocabvault') {
+          await renderVocabTable();
+        } else if (targetId === 'view-profile') {
+          await renderProfileStats();
+        }
+      });
+    });
+
+    document.getElementById('nav-brand').addEventListener('click', () => {
+      document.querySelector('[data-target="view-dashboard"]').click();
+    });
+
+    document.getElementById('dash-btn-continue').addEventListener('click', () => {
+      document.querySelector('[data-target="view-studypath"]').click();
+    });
+
+    document.getElementById('dash-btn-start-srs').addEventListener('click', () => {
+      openSRSModal();
+    });
+
+    document.getElementById('btn-quick-srs').addEventListener('click', () => {
+      openSRSModal();
+    });
+  }
+
+  // Language & Level Dropdowns
+  function setupLanguageAndLevelSelectors() {
+    const langSelect = document.getElementById('select-language');
+    const levelSelect = document.getElementById('select-level');
+    const flagSpan = document.getElementById('current-flag');
+
+    langSelect.addEventListener('change', async (e) => {
+      state.currentLang = e.target.value;
+      flagSpan.textContent = flagMap[state.currentLang] || '🌐';
+      showToast(`Đã chuyển sang ngôn ngữ: ${state.currentLang}`, 'info');
+      
+      setupWeekSelector();
+      renderCurrentWeek();
+      await renderVocabTable();
+      updateSRSBadgeCount();
+    });
+
+    levelSelect.addEventListener('change', (e) => {
+      state.currentLevel = e.target.value;
+      showToast(`Đã chọn cấp độ: ${state.currentLevel}`, 'info');
+      document.getElementById('dash-week-tag').textContent = `Tuần ${state.currentWeek} - ${state.currentLevel}`;
+    });
+  }
+
+  /* ==========================================================================
+     STUDY PATH & WEEKLY CURRICULUM
+     ========================================================================== */
+
+  function setupWeekSelector() {
+    const container = document.getElementById('week-selector-list');
+    container.innerHTML = '';
+
+    const weeks = CURRICULUM_DATA[state.currentLang] || CURRICULUM_DATA['EN'];
+
+    weeks.forEach((wData) => {
+      const btn = document.createElement('button');
+      btn.className = `week-btn ${wData.weekNum === state.currentWeek ? 'active' : ''}`;
+      btn.innerHTML = `W${wData.weekNum}<br><small style="font-size:0.75rem; font-weight:400;">${wData.topicVi}</small>`;
+      btn.addEventListener('click', () => {
+        state.currentWeek = wData.weekNum;
+        document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderCurrentWeek();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function renderCurrentWeek() {
+    const list = CURRICULUM_DATA[state.currentLang] || CURRICULUM_DATA['EN'];
+    const wData = list.find(w => w.weekNum === state.currentWeek) || list[0];
+
+    // Banner Header
+    document.getElementById('sp-week-tag').textContent = `Tuần ${wData.weekNum} - ${state.currentLevel}`;
+    document.getElementById('sp-week-title').textContent = wData.title;
+    document.getElementById('sp-topic-vi').textContent = `Chủ đề: ${wData.topicVi}`;
+
+    // Dashboard Banner sync
+    document.getElementById('dash-week-tag').textContent = `Tuần ${wData.weekNum} - ${state.currentLevel}`;
+    document.getElementById('dash-week-title').textContent = wData.title;
+    document.getElementById('dash-week-desc').textContent = `Chủ đề: ${wData.topicVi}`;
+
+    // Module 1: Grammar Hub
+    document.getElementById('grammar-formula').textContent = wData.grammar.formula;
+    document.getElementById('grammar-en-nuance').textContent = wData.grammar.enNuance;
+    document.getElementById('grammar-vi-nuance').textContent = wData.grammar.viNuance;
+
+    const exListContainer = document.getElementById('grammar-examples-list');
+    exListContainer.innerHTML = '';
+    wData.grammar.examples.forEach(ex => {
+      const div = document.createElement('div');
+      div.className = 'example-sentence-item';
+      div.innerHTML = `
+        <div>
+          <div class="ruby-text">${ex.text}</div>
+          <small class="text-muted" style="font-size:0.85rem; margin-top:0.25rem; display:block;">${ex.vi}</small>
+        </div>
+        <button class="btn btn-secondary btn-sm btn-speak-ex">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      `;
+      div.querySelector('.btn-speak-ex').addEventListener('click', () => {
+        window.audioEngine.speak(ex.text, state.currentLang, state.audioSpeed);
+      });
+      exListContainer.appendChild(div);
+    });
+
+    // Module 2: Reading Lab
+    document.getElementById('reading-passage-title').innerHTML = `
+      <i class="fa-solid fa-headphones" style="color: var(--secondary);"></i> ${wData.reading.title}
+    `;
+    renderReadingPassageWithPopups(wData.reading);
+
+    // Module 3: Roleplay Arena
+    document.getElementById('rp-context-vi').textContent = wData.roleplay.contextVi;
+    document.getElementById('rp-context-target').textContent = wData.roleplay.contextEn;
+    document.getElementById('rp-char-prompt-text').textContent = wData.roleplay.characterPrompt;
+    document.getElementById('rp-col-2-text').textContent = wData.roleplay.standardAnswer;
+    document.getElementById('rp-col-3-text').textContent = wData.roleplay.nativeAnswer;
+
+    // Reset 30s timer & feedback
+    resetRoleplayTimer();
+    document.getElementById('rp-feedback-card').style.display = 'none';
+  }
+
+  function setupModuleTabs() {
+    const tabBtns = document.querySelectorAll('.module-tab-btn');
+    const moduleContents = document.querySelectorAll('.module-content');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const targetModule = btn.getAttribute('data-module');
+        state.currentModule = targetModule;
+
+        moduleContents.forEach(mc => {
+          if (mc.id === targetModule) {
+            mc.style.display = 'block';
+          } else {
+            mc.style.display = 'none';
+          }
+        });
+      });
+    });
+  }
+
+  /* ==========================================================================
+     MODULE 2: READING LAB & POP-UP DICTIONARY
+     ========================================================================== */
+
+  function renderReadingPassageWithPopups(readingData) {
+    const container = document.getElementById('reading-text-container');
+    let text = readingData.content;
+    const dict = readingData.dict || {};
+
+    Object.keys(dict).forEach(word => {
+      const info = dict[word];
+      const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+      text = text.replace(regex, (match) => {
+        return `
+          <span class="dict-word">
+            ${match}
+            <div class="dict-popup-modal">
+              <strong style="color:var(--primary-light); font-size:1.05rem;">${match}</strong>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${info.ipa || ''}</div>
+              <div style="margin-top:0.35rem; font-weight:600; color:var(--secondary);">${info.vi}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">${info.en}</div>
+              <div style="font-size:0.75rem; margin-top:0.35rem; padding-top:0.35rem; border-top:1px dashed var(--border-color); color:#a5b4fc;">
+                Ví dụ: "${info.ex}"
+              </div>
+            </div>
+          </span>
+        `;
+      });
+    });
+
+    container.innerHTML = text;
+  }
+
+  function setupReadingLab() {
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.audioSpeed = parseFloat(btn.getAttribute('data-speed'));
+        window.audioEngine.setRate(state.audioSpeed);
+        showToast(`Tốc độ Audio: ${state.audioSpeed}x`, 'info');
+      });
+    });
+
+    document.getElementById('btn-play-reading-audio').addEventListener('click', () => {
+      const passageBox = document.getElementById('reading-text-container');
+      window.audioEngine.speak(passageBox.innerText, state.currentLang, state.audioSpeed);
+    });
+  }
+
+  /* ==========================================================================
+     MODULE 3: 30S ROLEPLAY ARENA & SERVER LOGGING
+     ========================================================================== */
+
+  function setupRoleplayArena() {
+    const btnTranscript = document.getElementById('btn-toggle-transcript');
+    const transcriptBox = document.getElementById('rp-transcript-box');
+    btnTranscript.addEventListener('click', () => {
+      if (transcriptBox.style.display === 'none') {
+        transcriptBox.style.display = 'block';
+      } else {
+        transcriptBox.style.display = 'none';
+      }
+    });
+
+    document.getElementById('btn-play-rp-char-audio').addEventListener('click', () => {
+      const promptText = document.getElementById('rp-char-prompt-text').textContent;
+      window.audioEngine.speak(promptText, state.currentLang, 1.0);
+    });
+
+    const btnTextMode = document.getElementById('mode-text-btn');
+    const btnVoiceMode = document.getElementById('mode-voice-btn');
+    const userInputArea = document.getElementById('roleplay-user-input');
+    const micVisBox = document.getElementById('mic-visualizer-box');
+
+    btnTextMode.addEventListener('click', () => {
+      btnTextMode.classList.add('active');
+      btnVoiceMode.classList.remove('active');
+      state.inputMode = 'text';
+      micVisBox.style.display = 'none';
+      window.audioEngine.stopListening();
+    });
+
+    btnVoiceMode.addEventListener('click', () => {
+      btnVoiceMode.classList.add('active');
+      btnTextMode.classList.remove('active');
+      state.inputMode = 'voice';
+      micVisBox.style.display = 'flex';
+
+      window.audioEngine.startListening(
+        state.currentLang,
+        (transcript) => {
+          userInputArea.value = transcript;
+        },
+        (err) => {
+          showToast(`Lỗi thu âm: ${err}`, 'error');
+          btnTextMode.click();
+        },
+        () => {
+          micVisBox.style.display = 'none';
+        }
+      );
+    });
+
+    document.getElementById('btn-start-timer').addEventListener('click', () => {
+      startRoleplayTimer();
+    });
+
+    document.getElementById('btn-submit-roleplay').addEventListener('click', async () => {
+      await submitRoleplayForAIEvaluation();
+    });
+
+    document.getElementById('btn-speak-col2').addEventListener('click', () => {
+      const text = document.getElementById('rp-col-2-text').textContent;
+      window.audioEngine.speak(text, state.currentLang, 1.0);
+    });
+
+    document.getElementById('btn-speak-col3').addEventListener('click', () => {
+      const text = document.getElementById('rp-col-3-text').textContent;
+      window.audioEngine.speak(text, state.currentLang, 1.0);
+    });
+  }
+
+  function startRoleplayTimer() {
+    if (state.timerRunning) return;
+    state.timerLeft = 30;
+    state.timerRunning = true;
+    updateTimerUI();
+
+    state.timerInterval = setInterval(() => {
+      state.timerLeft -= 1;
+      updateTimerUI();
+
+      if (state.timerLeft <= 0) {
+        clearInterval(state.timerInterval);
+        state.timerRunning = false;
+        showToast("⏰ Hết 30 giây! Tự động nộp bài phân tích AI.", "warning");
+        submitRoleplayForAIEvaluation();
+      }
+    }, 1000);
+  }
+
+  function resetRoleplayTimer() {
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state.timerLeft = 30;
+    state.timerRunning = false;
+    updateTimerUI();
+  }
+
+  function updateTimerUI() {
+    const numDisplay = document.getElementById('timer-display-num');
+    const circle = document.getElementById('timer-progress-circle');
+
+    numDisplay.textContent = state.timerLeft;
+    const offset = 377 * (1 - state.timerLeft / 30);
+    circle.style.strokeDashoffset = offset;
+
+    circle.classList.remove('is-green', 'is-yellow', 'is-red');
+    if (state.timerLeft > 15) {
+      circle.classList.add('is-green');
+    } else if (state.timerLeft >= 5) {
+      circle.classList.add('is-yellow');
+    } else {
+      circle.classList.add('is-red');
+    }
+  }
+
+  async function submitRoleplayForAIEvaluation() {
+    const userText = document.getElementById('roleplay-user-input').value;
+    const list = CURRICULUM_DATA[state.currentLang] || CURRICULUM_DATA['EN'];
+    const wData = list.find(w => w.weekNum === state.currentWeek) || list[0];
+
+    showToast("🤖 AI Engine đang phân tích phản xạ trong < 2.5s...", "info");
+
+    const result = await window.aiEngine.evaluateRoleplay(userText, wData.roleplay, state.currentLang);
+
+    document.getElementById('rp-col-1-body').innerHTML = result.column1Html;
+
+    const feedbackCard = document.getElementById('rp-feedback-card');
+    feedbackCard.style.display = 'block';
+    feedbackCard.scrollIntoView({ behavior: 'smooth' });
+
+    // Sync result with Backend Server Database
+    if (window.authService.isLoggedIn()) {
+      await window.apiService.saveRoleplayEval({
+        lang: state.currentLang,
+        week_num: state.currentWeek,
+        user_response: userText,
+        standard_answer: wData.roleplay.standardAnswer,
+        native_answer: wData.roleplay.nativeAnswer,
+        score: result.score,
+        feedback: result.feedbackNotes
+      });
+      showToast("💾 Đã lưu kết quả Roleplay vào SQLite Database!", "success");
+    }
+
+    resetRoleplayTimer();
+  }
+
+  /* ==========================================================================
+     VOCAB VAULT & SRS FLASHCARDS WITH SERVER SYNC
+     ========================================================================== */
+
+  function setupVocabVault() {
+    document.getElementById('btn-ai-autofill').addEventListener('click', async () => {
+      const word = document.getElementById('inp-vocab-word').value;
+      if (!word.trim()) {
+        showToast("Vui lòng nhập từ vựng trước khi bấm Phân tích AI!", "warning");
+        return;
+      }
+
+      showToast("🤖 AI đang tự động phân tích phiên âm và nghĩa...", "info");
+      const res = await window.aiEngine.autoFillVocab(word, state.currentLang);
+
+      if (res.word) {
+        document.getElementById('inp-vocab-word').value = res.word;
+      }
+      document.getElementById('inp-vocab-phonetic').value = res.phonetic || '';
+      document.getElementById('inp-vocab-trans-vi').value = res.translationVi || '';
+      document.getElementById('inp-vocab-exp-en').value = res.explanationEn || '';
+      document.getElementById('inp-vocab-ex-sentence').value = res.exampleSentence || '';
+      document.getElementById('inp-vocab-ex-trans').value = res.exampleTranslation || '';
+
+      showToast("✨ AI Phân tích thành công!", "success");
+    });
+
+    // Save Vocab Button
+    document.getElementById('btn-save-vocab').addEventListener('click', async () => {
+      const word = document.getElementById('inp-vocab-word').value;
+      const phonetic = document.getElementById('inp-vocab-phonetic').value;
+      const transVi = document.getElementById('inp-vocab-trans-vi').value;
+      const expEn = document.getElementById('inp-vocab-exp-en').value;
+      const exSentence = document.getElementById('inp-vocab-ex-sentence').value;
+      const exTrans = document.getElementById('inp-vocab-ex-trans').value;
+
+      if (!word.trim() || !transVi.trim()) {
+        showToast("Vui lòng nhập Từ vựng và Nghĩa tiếng Việt!", "warning");
+        return;
+      }
+
+      const newVocab = {
+        id: 'vocab-' + Date.now(),
+        lang: state.currentLang,
+        word: word,
+        phonetic: phonetic,
+        translation_vi: transVi,
+        explanation_en: expEn,
+        example_sentence: exSentence,
+        example_translation: exTrans,
+        week_num: state.currentWeek,
+        mastery_level: 1
+      };
+
+      // Save locally
+      window.vocabRepo.add({
+        id: newVocab.id,
+        lang: newVocab.lang,
+        word: newVocab.word,
+        phonetic: newVocab.phonetic,
+        translationVi: newVocab.translation_vi,
+        explanationEn: newVocab.explanation_en,
+        exampleSentence: newVocab.example_sentence,
+        exampleTranslation: newVocab.example_translation,
+        weekNum: newVocab.week_num,
+        masteryLevel: 1
+      });
+
+      // Save to Backend Database if logged in
+      if (window.authService.isLoggedIn()) {
+        await window.apiService.saveVocab(newVocab);
+        showToast(`Đã lưu "${word}" vào SQLite Server Database!`, "success");
+      } else {
+        showToast(`Đã lưu "${word}" vào sổ từ vựng!`, "success");
+      }
+
+      // Clear Form
+      document.getElementById('inp-vocab-word').value = '';
+      document.getElementById('inp-vocab-phonetic').value = '';
+      document.getElementById('inp-vocab-trans-vi').value = '';
+      document.getElementById('inp-vocab-exp-en').value = '';
+      document.getElementById('inp-vocab-ex-sentence').value = '';
+      document.getElementById('inp-vocab-ex-trans').value = '';
+
+      await renderVocabTable();
+      updateSRSBadgeCount();
+    });
+
+    document.getElementById('filter-mastery').addEventListener('change', async () => {
+      await renderVocabTable();
+    });
+
+    document.getElementById('btn-open-srs-mode').addEventListener('click', () => {
+      openSRSModal();
+    });
+  }
+
+  async function renderVocabTable() {
+    const tbody = document.getElementById('vocab-table-body');
+    const filterVal = document.getElementById('filter-mastery').value;
+    
+    let items = window.vocabRepo.getByLang(state.currentLang);
+
+    // If logged in, merge/sync with Database items
+    if (window.authService.isLoggedIn()) {
+      const res = await window.apiService.getVocab();
+      if (res.status === 'success' && res.vocab) {
+        items = res.vocab.filter(i => i.lang === state.currentLang).map(i => ({
+          id: i.id,
+          lang: i.lang,
+          word: i.word,
+          phonetic: i.phonetic,
+          translationVi: i.translation_vi,
+          explanationEn: i.explanation_en,
+          exampleSentence: i.example_sentence,
+          exampleTranslation: i.example_translation,
+          masteryLevel: i.mastery_level || 1
+        }));
+      }
+    }
+
+    if (filterVal !== 'ALL') {
+      items = items.filter(i => i.masteryLevel === parseInt(filterVal, 10));
+    }
+
+    document.getElementById('vocab-total-count').textContent = `Tổng cộng: ${items.length} từ vựng`;
+    tbody.innerHTML = '';
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;" class="text-muted">Chưa có từ vựng nào trong danh sách. Hãy thêm mới phía trên!</td></tr>`;
+      return;
+    }
+
+    items.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="ruby-text" style="font-weight:700; font-size:1.1rem; color:var(--text-main);">${item.word}</div>
+          <div class="text-muted" style="font-size:0.8rem;">${item.phonetic || ''}</div>
+        </td>
+        <td>
+          <div style="font-weight:600; color:var(--secondary);">${item.translationVi}</div>
+          <div class="text-muted" style="font-size:0.85rem;">${item.explanationEn || ''}</div>
+        </td>
+        <td>
+          <div style="font-size:0.9rem; font-style:italic;">${item.exampleSentence || '-'}</div>
+          <small class="text-dim">${item.exampleTranslation || ''}</small>
+        </td>
+        <td>
+          <span class="mastery-pill lvl-${item.masteryLevel}">Level ${item.masteryLevel}</span>
+        </td>
+        <td>
+          <button class="btn btn-secondary btn-sm btn-speak-vocab"><i class="fa-solid fa-volume-high"></i></button>
+        </td>
+      `;
+
+      tr.querySelector('.btn-speak-vocab').addEventListener('click', () => {
+        window.audioEngine.speak(item.word, state.currentLang, 1.0);
+      });
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ==========================================================================
+     SRS FLASHCARD MODAL STAGE
+     ========================================================================== */
+
+  function setupSRSModal() {
+    const modal = document.getElementById('modal-srs-flashcard');
+    const btnClose = document.getElementById('btn-close-srs-modal');
+    const cardEl = document.getElementById('srs-flashcard-element');
+    const ratingControls = document.getElementById('srs-rating-controls');
+
+    btnClose.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+
+    cardEl.addEventListener('click', () => {
+      state.srsFlipped = !state.srsFlipped;
+      if (state.srsFlipped) {
+        cardEl.classList.add('flipped');
+        ratingControls.style.display = 'flex';
+      } else {
+        cardEl.classList.remove('flipped');
+        ratingControls.style.display = 'none';
+      }
+    });
+
+    document.querySelectorAll('[data-rating]').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const rating = btn.getAttribute('data-rating');
+        const currentCard = state.srsQueue[state.srsIndex];
+
+        if (currentCard) {
+          const res = window.srsEngine.rateCard(currentCard.id, rating);
+          if (window.authService.isLoggedIn()) {
+            await window.apiService.rateVocabSRS(currentCard.id, res.newLvl);
+          }
+          showToast(`Đã ghi nhận phản hồi (${rating.toUpperCase()})`, 'success');
+        }
+
+        state.srsIndex += 1;
+        renderSRSCard();
+      });
+    });
+  }
+
+  function openSRSModal() {
+    state.srsQueue = window.vocabRepo.getDueForReview(state.currentLang);
+
+    if (state.srsQueue.length === 0) {
+      state.srsQueue = window.vocabRepo.getByLang(state.currentLang);
+    }
+
+    if (state.srsQueue.length === 0) {
+      showToast("Chưa có từ vựng nào để ôn tập!", "warning");
+      return;
+    }
+
+    state.srsIndex = 0;
+    document.getElementById('modal-srs-flashcard').classList.add('active');
+    renderSRSCard();
+  }
+
+  function renderSRSCard() {
+    const cardEl = document.getElementById('srs-flashcard-element');
+    const ratingControls = document.getElementById('srs-rating-controls');
+
+    state.srsFlipped = false;
+    cardEl.classList.remove('flipped');
+    ratingControls.style.display = 'none';
+
+    if (state.srsIndex >= state.srsQueue.length) {
+      showToast("🎉 BẠN ĐÃ HOÀN THÀNH TẤT CẢ TỪ VỰNG ÔN TẬP HÔM NAY!", "success");
+      document.getElementById('modal-srs-flashcard').classList.remove('active');
+      updateSRSBadgeCount();
+      return;
+    }
+
+    const card = state.srsQueue[state.srsIndex];
+
+    document.getElementById('srs-card-lvl').textContent = `Mastery Level ${card.masteryLevel}`;
+    document.getElementById('srs-card-lvl').className = `mastery-pill lvl-${card.masteryLevel}`;
+    document.getElementById('srs-card-front-word').innerHTML = card.word;
+    document.getElementById('srs-card-front-phonetic').textContent = card.phonetic || '';
+
+    document.getElementById('srs-card-back-trans').textContent = card.translationVi;
+    document.getElementById('srs-card-back-exp').textContent = card.explanationEn || '';
+    document.getElementById('srs-card-back-ex').textContent = card.exampleSentence ? `Ví dụ: ${card.exampleSentence}` : '';
+  }
+
+  function updateSRSBadgeCount() {
+    const dueItems = window.vocabRepo.getDueForReview(state.currentLang);
+    const count = dueItems.length;
+    document.getElementById('srs-badge-count').textContent = count;
+    document.getElementById('srs-widget-num').textContent = count;
+  }
+
+  function updateStreakDisplay() {
+    const user = window.authService.getUser();
+    const streak = user ? user.streak : window.srsEngine.getStreak();
+    document.getElementById('streak-counter-val').textContent = streak;
+    document.getElementById('prof-streak-val').textContent = streak;
+  }
+
+  async function renderProfileStats() {
+    updateStreakDisplay();
+    const user = window.authService.getUser();
+    if (user) {
+      document.getElementById('prof-xp-val').textContent = user.xp || 120;
+    }
+
+    const items = window.vocabRepo.getAll();
+    const mastered = items.filter(i => i.masteryLevel >= 4).length;
+    document.getElementById('prof-mastered-val').textContent = mastered;
+
+    // Fetch Admin Capstone Analytics from Server
+    const res = await window.apiService.getAdminStats();
+    if (res.status === 'success' && res.stats) {
+      document.getElementById('admin-stat-users').textContent = res.stats.total_users;
+      document.getElementById('admin-stat-vocab').textContent = res.stats.total_vocab;
+      document.getElementById('admin-stat-roleplay').textContent = res.stats.total_roleplays;
+
+      const tbody = document.getElementById('admin-leaderboard-body');
+      tbody.innerHTML = '';
+      res.stats.top_leaderboard.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${u.full_name || u.username}</strong></td>
+          <td style="color:var(--accent-amber); font-weight:700;"><i class="fa-solid fa-fire"></i> ${u.streak} ngày</td>
+          <td style="color:var(--primary-light); font-weight:700;"><i class="fa-solid fa-star"></i> ${u.xp} XP</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  /* ==========================================================================
+     TOAST NOTIFICATION HELPER
+     ========================================================================== */
+
+  function showToast(msg, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    
+    let icon = '<i class="fa-solid fa-info-circle" style="color:var(--primary-light);"></i>';
+    if (type === 'success') icon = '<i class="fa-solid fa-circle-check" style="color:var(--secondary);"></i>';
+    if (type === 'warning') icon = '<i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-amber);"></i>';
+    if (type === 'error') icon = '<i class="fa-solid fa-circle-xmark" style="color:var(--accent-rose);"></i>';
+
+    toast.innerHTML = `${icon} <span>${msg}</span>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(50px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Initialize App
+  await initApp();
+});
