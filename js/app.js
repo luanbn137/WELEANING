@@ -57,12 +57,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     await window.authService.init();
     updateAuthNavbarUI();
 
-    // Initial Render (show local data immediately)
+    // Initial Render & Hash Route handling
     renderCurrentWeek();
     await renderVocabTable();
     await updateDashboardSkillProgress();
     updateSRSBadgeCount();
     updateStreakDisplay();
+    handleHashRoute();
 
     // Wake up Render Cloud Server in background (free tier sleeps after 15min)
     wakeUpServerAndSync();
@@ -307,48 +308,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function handleHashRoute() {
+    const hash = window.location.hash || '#dashboard';
+    const hashMap = {
+      '#dashboard': 'view-dashboard',
+      '#studypath': 'view-studypath',
+      '#vocabvault': 'view-vocabvault',
+      '#profile': 'view-profile'
+    };
+
+    const targetId = hashMap[hash] || 'view-dashboard';
+
+    // Update active navbar link
+    document.querySelectorAll('.nav-link').forEach(link => {
+      if (link.getAttribute('data-target') === targetId || link.getAttribute('href') === hash) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+
+    // Update active view section
+    document.querySelectorAll('.view-section').forEach(sec => {
+      if (sec.id === targetId) {
+        sec.classList.add('active');
+      } else {
+        sec.classList.remove('active');
+      }
+    });
+
+    if (targetId === 'view-vocabvault') {
+      renderVocabTable();
+    } else if (targetId === 'view-profile') {
+      renderProfileStats();
+    }
+  }
+
   // Navigation Tabs
   function setupNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    const sections = document.querySelectorAll('.view-section');
+    window.addEventListener('hashchange', handleHashRoute);
 
-    navLinks.forEach(link => {
-      link.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const targetId = link.getAttribute('data-target');
-        
-        navLinks.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-
-        sections.forEach(sec => {
-          if (sec.id === targetId) {
-            sec.classList.add('active');
-          } else {
-            sec.classList.remove('active');
-          }
-        });
-
-        if (targetId === 'view-vocabvault') {
-          await renderVocabTable();
-        } else if (targetId === 'view-profile') {
-          await renderProfileStats();
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          e.preventDefault();
+          window.location.hash = href;
+          handleHashRoute();
         }
       });
     });
 
-    document.getElementById('nav-brand').addEventListener('click', () => {
-      document.querySelector('[data-target="view-dashboard"]').click();
+    document.getElementById('nav-brand')?.addEventListener('click', () => {
+      window.location.hash = '#dashboard';
+      handleHashRoute();
     });
 
-    document.getElementById('dash-btn-continue').addEventListener('click', () => {
-      document.querySelector('[data-target="view-studypath"]').click();
+    document.getElementById('dash-btn-continue')?.addEventListener('click', () => {
+      window.location.hash = '#studypath';
+      handleHashRoute();
     });
 
-    document.getElementById('dash-btn-start-srs').addEventListener('click', () => {
+    document.getElementById('dash-btn-start-srs')?.addEventListener('click', () => {
       openSRSModal();
     });
 
-    document.getElementById('btn-quick-srs').addEventListener('click', () => {
+    document.getElementById('btn-quick-srs')?.addEventListener('click', () => {
       openSRSModal();
     });
   }
