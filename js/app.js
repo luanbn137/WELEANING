@@ -894,24 +894,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterVal = document.getElementById('filter-mastery').value;
     const searchVal = (document.getElementById('inp-search-vocab')?.value || '').trim().toLowerCase();
     
-    let items = window.vocabRepo.getByLang(state.currentLang);
+    // 1. Load local items from LocalStorage repository
+    const localItems = window.vocabRepo.getByLang(state.currentLang);
+    const itemMap = new Map();
 
-    // Fetch live shared vocabulary database from Server
-    const res = await window.apiService.getVocab();
-    if (res && res.status === 'success' && res.vocab) {
-      items = res.vocab.map(i => ({
+    localItems.forEach(i => {
+      itemMap.set(i.id, {
         id: i.id,
-        lang: i.lang,
+        lang: i.lang || 'ALL',
         word: i.word,
-        phonetic: i.phonetic,
-        translationVi: i.translation_vi,
-        explanationEn: i.explanation_en,
-        exampleSentence: i.example_sentence,
-        exampleTranslation: i.example_translation,
-        masteryLevel: i.mastery_level || 1,
-        createdBy: i.created_by || null
-      }));
+        phonetic: i.phonetic || '',
+        translationVi: i.translationVi || i.translation_vi || '',
+        explanationEn: i.explanationEn || i.explanation_en || '',
+        exampleSentence: i.exampleSentence || i.example_sentence || '',
+        exampleTranslation: i.exampleTranslation || i.example_translation || '',
+        masteryLevel: i.masteryLevel || i.mastery_level || 1,
+        createdBy: i.createdBy || i.created_by || null
+      });
+    });
+
+    // 2. Fetch live shared vocabulary database from Server and merge seamlessly
+    try {
+      const res = await window.apiService.getVocab();
+      if (res && res.status === 'success' && Array.isArray(res.vocab)) {
+        res.vocab.forEach(i => {
+          if (i.lang === state.currentLang || i.lang === 'ALL' || !i.lang) {
+            itemMap.set(i.id, {
+              id: i.id,
+              lang: i.lang || 'ALL',
+              word: i.word,
+              phonetic: i.phonetic || '',
+              translationVi: i.translation_vi || i.translationVi || '',
+              explanationEn: i.explanation_en || i.explanationEn || '',
+              exampleSentence: i.example_sentence || i.exampleSentence || '',
+              exampleTranslation: i.example_translation || i.exampleTranslation || '',
+              masteryLevel: i.mastery_level || i.masteryLevel || 1,
+              createdBy: i.created_by || i.createdBy || null
+            });
+          }
+        });
+      }
+    } catch(err) {
+      console.warn("Unable to fetch server vocab, fallback to local:", err);
     }
+
+    let items = Array.from(itemMap.values());
 
     // Filter by Mastery Level
     if (filterVal !== 'ALL') {

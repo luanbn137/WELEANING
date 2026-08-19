@@ -179,7 +179,7 @@ class VocabRepository {
   }
 
   getByLang(lang) {
-    return this.items.filter(item => item.lang === lang);
+    return this.items.filter(item => item.lang === lang || item.lang === 'ALL' || !item.lang);
   }
 
   getDueForReview(lang = null) {
