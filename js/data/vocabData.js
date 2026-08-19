@@ -353,16 +353,22 @@ class VocabRepository {
   }
 
   add(item) {
-    const newItem = {
-      id: 'vocab-' + Date.now(),
-      masteryLevel: 1,
-      nextReviewDate: new Date().toISOString(),
-      lastReviewedDate: new Date().toISOString(),
-      ...item
-    };
-    this.items.unshift(newItem);
+    const cleanId = item.id || ('vocab-' + Date.now());
+    const idx = this.items.findIndex(i => String(i.id) === String(cleanId));
+    if (idx !== -1) {
+      this.items[idx] = { ...this.items[idx], ...item, id: cleanId };
+    } else {
+      const newItem = {
+        id: cleanId,
+        masteryLevel: 1,
+        nextReviewDate: new Date().toISOString(),
+        lastReviewedDate: new Date().toISOString(),
+        ...item
+      };
+      this.items.unshift(newItem);
+    }
     this.saveToStorage();
-    return newItem;
+    return this.items.find(i => String(i.id) === String(cleanId));
   }
 
   updateMastery(id, newLevel, nextIntervalDays) {

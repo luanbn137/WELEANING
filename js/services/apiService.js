@@ -34,25 +34,34 @@ class ApiService {
 
   async saveVocab(item) {
     try {
-      const res = await fetch(`${this.url}/vocab_vault`, {
-        method: 'POST',
+      const isNumericId = item.id && !isNaN(Number(item.id));
+      const url = isNumericId 
+        ? `${this.url}/vocab_vault?id=eq.${item.id}`
+        : `${this.url}/vocab_vault`;
+      
+      const method = isNumericId ? 'PATCH' : 'POST';
+
+      const payload = {
+        lang: item.lang || 'EN',
+        word: item.word,
+        phonetic: item.phonetic || '',
+        translation_vi: item.translationVi || item.translation_vi || '',
+        explanation_en: item.explanationEn || item.explanation_en || '',
+        example_sentence: item.exampleSentence || item.example_sentence || '',
+        example_translation: item.exampleTranslation || item.example_translation || '',
+        mastery_level: item.masteryLevel || item.mastery_level || 1,
+        created_by: item.createdBy || item.created_by || null
+      };
+
+      const res = await fetch(url, {
+        method: method,
         headers: this.headers,
-        body: JSON.stringify({
-          lang: item.lang || 'EN',
-          word: item.word,
-          phonetic: item.phonetic || '',
-          translation_vi: item.translationVi || item.translation_vi || '',
-          explanation_en: item.explanationEn || item.explanation_en || '',
-          example_sentence: item.exampleSentence || item.example_sentence || '',
-          example_translation: item.exampleTranslation || item.example_translation || '',
-          mastery_level: item.masteryLevel || 1,
-          created_by: item.createdBy || item.created_by || null
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) throw new Error(JSON.stringify(data));
       const saved = Array.isArray(data) ? data[0] : data;
-      return { status: 'success', item: { ...saved, id: saved.id } };
+      return { status: 'success', item: saved ? { ...saved, id: saved.id } : item };
     } catch (err) {
       console.warn('[Supabase] saveVocab error:', err);
       return { status: 'offline' };
@@ -61,10 +70,12 @@ class ApiService {
 
   async deleteVocab(vocabId) {
     try {
-      await fetch(`${this.url}/vocab_vault?id=eq.${vocabId}`, {
-        method: 'DELETE',
-        headers: this.headers
-      });
+      if (vocabId && !isNaN(Number(vocabId))) {
+        await fetch(`${this.url}/vocab_vault?id=eq.${vocabId}`, {
+          method: 'DELETE',
+          headers: this.headers
+        });
+      }
       return { status: 'success' };
     } catch (err) {
       console.warn('[Supabase] deleteVocab error:', err);
