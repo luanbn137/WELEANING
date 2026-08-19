@@ -824,7 +824,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const newVocab = {
         id: vocabId,
-        lang: 'ALL',
+        lang: state.currentLang,
         word: word,
         phonetic: phonetic,
         translation_vi: transVi,
@@ -839,7 +839,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Save locally
       window.vocabRepo.add({
         id: newVocab.id,
-        lang: 'ALL',
+        lang: state.currentLang,
         word: newVocab.word,
         phonetic: newVocab.phonetic,
         translationVi: newVocab.translation_vi,
@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (state.editingVocabId) {
         showToast(`✨ Đã cập nhật từ vựng "${word}" thành công!`, "success");
       } else {
-        showToast(`✨ Đã thêm từ vựng mới "${word}" vào hệ thống!`, "success");
+        showToast(`✨ Đã thêm từ vựng mới "${word}" vào hệ thống (${state.currentLang})!`, "success");
       }
 
       // Reset Form & Editing State
@@ -894,34 +894,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterVal = document.getElementById('filter-mastery').value;
     const searchVal = (document.getElementById('inp-search-vocab')?.value || '').trim().toLowerCase();
     
-    // 1. Load local items from LocalStorage repository
+    // 1. Load local items from LocalStorage repository for active language
     const localItems = window.vocabRepo.getByLang(state.currentLang);
     const itemMap = new Map();
 
     localItems.forEach(i => {
-      itemMap.set(i.id, {
-        id: i.id,
-        lang: i.lang || 'ALL',
-        word: i.word,
-        phonetic: i.phonetic || '',
-        translationVi: i.translationVi || i.translation_vi || '',
-        explanationEn: i.explanationEn || i.explanation_en || '',
-        exampleSentence: i.exampleSentence || i.example_sentence || '',
-        exampleTranslation: i.exampleTranslation || i.example_translation || '',
-        masteryLevel: i.masteryLevel || i.mastery_level || 1,
-        createdBy: i.createdBy || i.created_by || null
-      });
+      if (i.lang === state.currentLang || (!i.lang && state.currentLang === 'EN')) {
+        itemMap.set(i.id, {
+          id: i.id,
+          lang: i.lang || state.currentLang,
+          word: i.word,
+          phonetic: i.phonetic || '',
+          translationVi: i.translationVi || i.translation_vi || '',
+          explanationEn: i.explanationEn || i.explanation_en || '',
+          exampleSentence: i.exampleSentence || i.example_sentence || '',
+          exampleTranslation: i.exampleTranslation || i.example_translation || '',
+          masteryLevel: i.masteryLevel || i.mastery_level || 1,
+          createdBy: i.createdBy || i.created_by || null
+        });
+      }
     });
 
-    // 2. Fetch live shared vocabulary database from Server and merge seamlessly
+    // 2. Fetch live shared vocabulary database from Server for active language
     try {
       const res = await window.apiService.getVocab();
       if (res && res.status === 'success' && Array.isArray(res.vocab)) {
         res.vocab.forEach(i => {
-          if (i.lang === state.currentLang || i.lang === 'ALL' || !i.lang) {
+          if (i.lang === state.currentLang || (!i.lang && state.currentLang === 'EN')) {
             itemMap.set(i.id, {
               id: i.id,
-              lang: i.lang || 'ALL',
+              lang: i.lang || state.currentLang,
               word: i.word,
               phonetic: i.phonetic || '',
               translationVi: i.translation_vi || i.translationVi || '',

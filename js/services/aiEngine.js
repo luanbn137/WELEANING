@@ -1,187 +1,79 @@
 /**
- * AI ENGINE SERVICE (ULTRA-ROBUST BILINGUAL EDITION)
- * Handles AI Auto-fill generation for Vocab Vault & 3-Column Feedback Evaluation for 30s Roleplay Arena.
- * Guarantees response time < 0.2 seconds.
+ * AI ENGINE SERVICE (LANGUAGE-AWARE MULTILINGUAL EDITION)
+ * Handles AI Auto-fill generation per language (EN, JA, ZH, KO) & 3-Column Feedback Evaluation.
  */
 
 class AIEngineService {
   constructor() {
-    // Rich Dictionary Database for English, Vietnamese, Japanese, Chinese, and Korean
-    this.vocabDatabase = {
+    this.multilingualDict = {
       // Pencil / Bút chì
       "pencil": {
-        word: "Pencil",
-        phonetic: "/ˈpen.səl/",
-        translationVi: "Cái bút chì (dụng cụ viết/vẽ)",
-        explanationEn: "An instrument for writing or drawing, consisting of a thin stick of graphite.",
-        exampleSentence: "I need a sharp pencil to sketch this portrait.",
-        exampleTranslation: "Tôi cần một chiếc bút chì gọt nhọn để phác thảo bức chân dung này."
+        "EN": { word: "Pencil", phonetic: "/ˈpen.səl/", translationVi: "Cái bút chì", explanationEn: "Writing stick of graphite.", exampleSentence: "I need a sharp pencil to sketch this portrait.", exampleTranslation: "Tôi cần một chiếc bút chì gọt nhọn để phác thảo bức tranh." },
+        "JA": { word: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>", phonetic: "Enpitsu", translationVi: "Cái bút chì (Tiếng Nhật)", explanationEn: "Japanese word for pencil.", exampleSentence: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>で下書きを<ruby>書<rt>か</rt></ruby>きます。", exampleTranslation: "Tôi viết bản phác thảo bằng bút chì." },
+        "ZH": { word: "<ruby>铅笔<rt>qiān bǐ</rt></ruby>", phonetic: "qiān bǐ", translationVi: "Cái bút chì (Tiếng Trung)", explanationEn: "Chinese word for pencil.", exampleSentence: "请用铅笔填写这张表格。", exampleTranslation: "Xin vui lòng dùng bút chì điền vào mẫu biểu này." },
+        "KO": { word: "연필", phonetic: "yeon-pil (A1 Romaja)", translationVi: "Cái bút chì (Tiếng Hàn)", explanationEn: "Korean word for pencil.", exampleSentence: "연필로 글씨를 써요.", exampleTranslation: "Tôi viết chữ bằng bút chì." }
       },
       "cái bút chì": {
-        word: "Pencil",
-        phonetic: "/ˈpen.səl/",
-        translationVi: "Cái bút chì (dụng cụ viết/vẽ)",
-        explanationEn: "An instrument for writing or drawing, consisting of a thin stick of graphite.",
-        exampleSentence: "She wrote her draft with a lead pencil.",
-        exampleTranslation: "Cô ấy đã viết bản thảo bằng một chiếc bút chì."
+        "EN": { word: "Pencil", phonetic: "/ˈpen.səl/", translationVi: "Cái bút chì", explanationEn: "Writing stick of graphite.", exampleSentence: "She wrote her draft with a pencil.", exampleTranslation: "Cô ấy đã viết bản thảo bằng một chiếc bút chì." },
+        "JA": { word: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>", phonetic: "Enpitsu", translationVi: "Cái bút chì (Tiếng Nhật)", explanationEn: "Japanese word for pencil.", exampleSentence: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>で書きます。", exampleTranslation: "Tôi viết bằng bút chì." },
+        "ZH": { word: "<ruby>铅笔<rt>qiān bǐ</rt></ruby>", phonetic: "qiān bǐ", translationVi: "Cái bút chì (Tiếng Trung)", explanationEn: "Chinese word for pencil.", exampleSentence: "这支铅笔很好用。", exampleTranslation: "Chiếc bút chì này dùng rất thích." },
+        "KO": { word: "연필", phonetic: "yeon-pil", translationVi: "Cái bút chì (Tiếng Hàn)", explanationEn: "Korean word for pencil.", exampleSentence: "연필을 주세요.", exampleTranslation: "Cho tôi xin chiếc bút chì." }
       },
       "bút chì": {
-        word: "Pencil",
-        phonetic: "/ˈpen.səl/",
-        translationVi: "Bút chì",
-        explanationEn: "An instrument for writing or drawing.",
-        exampleSentence: "Please bring a pencil and an eraser to the exam.",
-        exampleTranslation: "Vui lòng mang theo bút chì và tẩy đến phòng thi."
-      },
-
-      // Pen / Bút bi
-      "pen": {
-        word: "Pen",
-        phonetic: "/pen/",
-        translationVi: "Cái bút bi / Bút mực",
-        explanationEn: "An instrument for writing or drawing with ink.",
-        exampleSentence: "Could I borrow your blue pen to sign this form?",
-        exampleTranslation: "Tôi có thể mượn chiếc bút bi xanh của bạn để ký biểu mẫu này không?"
-      },
-      "cái bút": {
-        word: "Pen",
-        phonetic: "/pen/",
-        translationVi: "Cái bút (viết mực/bi)",
-        explanationEn: "A writing instrument using ink.",
-        exampleSentence: "He signed the agreement with a gold pen.",
-        exampleTranslation: "Anh ấy đã ký hợp đồng bằng một chiếc bút vàng."
-      },
-      "bút": {
-        word: "Pen",
-        phonetic: "/pen/",
-        translationVi: "Cái bút",
-        explanationEn: "An instrument for writing with ink.",
-        exampleSentence: "She left her pen on the desk.",
-        exampleTranslation: "Cô ấy đã để quên chiếc bút trên bàn làm việc."
+        "EN": { word: "Pencil", phonetic: "/ˈpen.səl/", translationVi: "Bút chì", explanationEn: "Writing instrument.", exampleSentence: "Please bring a pencil to the exam.", exampleTranslation: "Vui lòng mang theo bút chì đến phòng thi." },
+        "JA": { word: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>", phonetic: "Enpitsu", translationVi: "Bút chì (Tiếng Nhật)", explanationEn: "Japanese pencil.", exampleSentence: "<ruby>新しい<rt>あたらしい</rt></ruby><ruby>鉛筆<rt>えんぴつ</rt></ruby>を買いました。", exampleTranslation: "Tôi đã mua chiếc bút chì mới." },
+        "ZH": { word: "<ruby>铅笔<rt>qiān bǐ</rt></ruby>", phonetic: "qiān bǐ", translationVi: "Bút chì (Tiếng Trung)", explanationEn: "Chinese pencil.", exampleSentence: "买一支铅笔。", exampleTranslation: "Mua một chiếc bút chì." },
+        "KO": { word: "연필", phonetic: "yeon-pil", translationVi: "Bút chì (Tiếng Hàn)", explanationEn: "Korean pencil.", exampleSentence: "연필이 필요해요.", exampleTranslation: "Tôi cần một chiếc bút chì." }
       },
 
       // Book / Sách
       "book": {
-        word: "Book",
-        phonetic: "/bʊk/",
-        translationVi: "Cuốn sách",
-        explanationEn: "A written or printed work consisting of pages bound together.",
-        exampleSentence: "Reading a good book before bed helps reduce stress.",
-        exampleTranslation: "Đọc một cuốn sách hay trước khi đi ngủ giúp giảm bớt căng thẳng."
+        "EN": { word: "Book", phonetic: "/bʊk/", translationVi: "Cuốn sách", explanationEn: "Bound pages of text.", exampleSentence: "Reading a good book reduces stress.", exampleTranslation: "Đọc một cuốn sách hay giúp giảm căng thẳng." },
+        "JA": { word: "<ruby>本<rt>ほん</rt></ruby>", phonetic: "Hon", translationVi: "Cuốn sách (Tiếng Nhật)", explanationEn: "Japanese word for book.", exampleSentence: "<ruby>毎日<rt>まいにち</rt></ruby><ruby>本<rt>ほん</rt></ruby>を<ruby>読<rt>よ</rt></ruby>みます。", exampleTranslation: "Mỗi ngày tôi đều đọc sách." },
+        "ZH": { word: "<ruby>书本<rt>shū běn</rt></ruby>", phonetic: "shū běn", translationVi: "Cuốn sách (Tiếng Trung)", explanationEn: "Chinese word for book.", exampleSentence: "我喜欢看书。", exampleTranslation: "Tôi thích đọc sách." },
+        "KO": { word: "책", phonetic: "chaek", translationVi: "Cuốn sách (Tiếng Hàn)", explanationEn: "Korean word for book.", exampleSentence: "매일 책을 읽어요.", exampleTranslation: "Mỗi ngày tôi đều đọc sách." }
       },
       "sách": {
-        word: "Book",
-        phonetic: "/bʊk/",
-        translationVi: "Cuốn sách / Quyển sách",
-        explanationEn: "A written or printed work bound in covers.",
-        exampleSentence: "This book covers advanced grammar structures.",
-        exampleTranslation: "Cuốn sách này bao gồm các cấu trúc ngữ pháp nâng cao."
-      },
-      "cuốn sách": {
-        word: "Book",
-        phonetic: "/bʊk/",
-        translationVi: "Cuốn sách",
-        explanationEn: "A written work bound together.",
-        exampleSentence: "I read an interesting book yesterday.",
-        exampleTranslation: "Tôi đã đọc một cuốn sách rất thú vị ngày hôm qua."
-      },
-
-      // Computer / Máy tính
-      "computer": {
-        word: "Computer",
-        phonetic: "/kəmˈpjuː.tər/",
-        translationVi: "Máy tính / Máy vi tính",
-        explanationEn: "An electronic device for storing and processing data.",
-        exampleSentence: "Modern software engineers use high-performance computers.",
-        exampleTranslation: "Các kỹ sư phần mềm hiện đại sử dụng máy tính hiệu năng cao."
-      },
-      "máy tính": {
-        word: "Computer",
-        phonetic: "/kəmˈpjuː.tər/",
-        translationVi: "Máy tính / Máy vi tính",
-        explanationEn: "An electronic device for processing data.",
-        exampleSentence: "I work on my laptop computer every day.",
-        exampleTranslation: "Tôi làm việc trên máy tính xách tay mỗi ngày."
-      },
-
-      // Resilient
-      "resilient": {
-        word: "Resilient",
-        phonetic: "/rɪˈzɪl.i.ənt/",
-        translationVi: "Kiên cường, có khả năng phục hồi nhanh",
-        explanationEn: "Able to withstand or recover quickly from difficult conditions.",
-        exampleSentence: "She remained resilient despite facing multiple challenges.",
-        exampleTranslation: "Cô ấy vẫn giữ vững sự kiên cường dù đối mặt với nhiều thử thách."
-      },
-
-      // Omotenashi
-      "omotenashi": {
-        word: "Omotenashi",
-        phonetic: "Omotenashi (おもてなし)",
-        translationVi: "Lòng hiếu khách tận tụy kiểu Nhật",
-        explanationEn: "Japanese hospitality that anticipates and fulfills needs without pretense.",
-        exampleSentence: "日本のホテルはおもてなしの心で知られています。",
-        exampleTranslation: "Các khách sạn ở Nhật Bản nổi tiếng với lòng hiếu khách tận tụy."
-      },
-
-      // Guanxi
-      "guanxi": {
-        word: "Guanxi",
-        phonetic: "guān xi (关系)",
-        translationVi: "Mối quan hệ xã hội / Mạng lưới liên kết",
-        explanationEn: "The system of social networks and influential relationships in Chinese business.",
-        exampleSentence: "在商业中，建立良好的关系非常重要。",
-        exampleTranslation: "Trong kinh doanh, xây dựng mối quan hệ tốt là vô cùng quan trọng."
-      },
-
-      // Daebak
-      "daebak": {
-        word: "Daebak",
-        phonetic: "dae-bak (대박)",
-        translationVi: "Tuyệt vời, đỉnh cao / Trúng lớn",
-        explanationEn: "An exclamation meaning awesome, jackpot, or huge success.",
-        exampleSentence: "오늘 진짜 대박이었어!",
-        exampleTranslation: "Hôm nay thực sự rất đỉnh cao!"
+        "EN": { word: "Book", phonetic: "/bʊk/", translationVi: "Cuốn sách", explanationEn: "Bound pages.", exampleSentence: "This book is very interesting.", exampleTranslation: "Cuốn sách này rất thú vị." },
+        "JA": { word: "<ruby>本<rt>ほん</rt></ruby>", phonetic: "Hon", translationVi: "Cuốn sách (Tiếng Nhật)", explanationEn: "Book in Japanese.", exampleSentence: "<ruby>図書館<rt>としょかん</rt></ruby>で<ruby>本<rt>ほん</rt></ruby>を<ruby>借<rt>か</rt></ruby>りました。", exampleTranslation: "Tôi đã mượn sách ở thư viện." },
+        "ZH": { word: "<ruby>书本<rt>shū běn</rt></ruby>", phonetic: "shū běn", translationVi: "Sách (Tiếng Trung)", explanationEn: "Book in Chinese.", exampleSentence: "这是一本好书。", exampleTranslation: "Đây là một cuốn sách hay." },
+        "KO": { word: "책", phonetic: "chaek", translationVi: "Sách (Tiếng Hàn)", explanationEn: "Book in Korean.", exampleSentence: "책을 읽어 보세요.", exampleTranslation: "Hãy thử đọc cuốn sách này." }
       }
     };
   }
 
-  /**
-   * Smart AI Auto-fill Vocab Generator
-   * @param {string} word - The entered word (English, Vietnamese, Japanese, etc.)
-   * @param {string} lang - Target language (EN, JA, ZH, KO)
-   */
   async autoFillVocab(word, lang) {
     try {
       const rawWord = (word || "").trim().normalize("NFC");
       const cleanKey = rawWord.toLowerCase();
+      const currentTargetLang = lang || 'EN';
       
-      // Fast response
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Direct match
-      if (this.vocabDatabase[cleanKey]) {
-        return this.vocabDatabase[cleanKey];
+      // Direct Multilingual Dictionary match
+      if (this.multilingualDict[cleanKey] && this.multilingualDict[cleanKey][currentTargetLang]) {
+        return this.multilingualDict[cleanKey][currentTargetLang];
       }
 
-      // Fuzzy search
-      for (const k in this.vocabDatabase) {
+      // Fuzzy search across dictionary
+      for (const k in this.multilingualDict) {
         if (cleanKey.includes(k) || k.includes(cleanKey)) {
-          return this.vocabDatabase[k];
+          if (this.multilingualDict[k][currentTargetLang]) {
+            return this.multilingualDict[k][currentTargetLang];
+          }
         }
       }
 
-      // Capitalize helper
       const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
 
-      // Dynamic fallback generator
-      switch (lang) {
+      // Dynamic language generator fallback
+      switch (currentTargetLang) {
         case 'JA':
           return {
             word: formattedWord,
             phonetic: `<ruby>${rawWord}<rt>よみ</rt></ruby>`,
-            translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Nhật)`,
-            explanationEn: `Japanese expression indicating "${rawWord}" in daily context.`,
+            translationVi: `Dịch nghĩa: "${rawWord}" (Tiếng Nhật)`,
+            explanationEn: `Japanese word for "${rawWord}".`,
             exampleSentence: `<ruby>今日<rt>きょう</rt></ruby>は${rawWord}を<ruby>勉強<rt>べんきょう</rt></ruby>します。`,
             exampleTranslation: `Hôm nay tôi học từ ${rawWord}.`
           };
@@ -189,7 +81,7 @@ class AIEngineService {
           return {
             word: formattedWord,
             phonetic: `<ruby>${rawWord}<rt>pīn yīn</rt></ruby>`,
-            translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Trung)`,
+            translationVi: `Dịch nghĩa: "${rawWord}" (Tiếng Trung)`,
             explanationEn: `Chinese vocabulary term for "${rawWord}".`,
             exampleSentence: `在日常生活中，${rawWord}非常实用。`,
             exampleTranslation: `Trong cuộc sống hàng ngày, ${rawWord} rất thực tế.`
@@ -198,7 +90,7 @@ class AIEngineService {
           return {
             word: formattedWord,
             phonetic: `${rawWord} (A1 Romaja)`,
-            translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Hàn)`,
+            translationVi: `Dịch nghĩa: "${rawWord}" (Tiếng Hàn)`,
             explanationEn: `Korean word indicating "${rawWord}".`,
             exampleSentence: `매일 ${rawWord}을/를 공부해요.`,
             exampleTranslation: `Mỗi ngày tôi đều học từ ${rawWord}.`
@@ -228,9 +120,6 @@ class AIEngineService {
     }
   }
 
-  /**
-   * Evaluates 30s Roleplay response & returns 3-Column Feedback
-   */
   async evaluateRoleplay(userResponse, roleplayContext, lang) {
     const startTime = Date.now();
     await new Promise(resolve => setTimeout(resolve, 800));
