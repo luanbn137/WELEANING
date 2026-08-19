@@ -225,10 +225,8 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
                 return self._send_json({'status': 'success', 'progress': [dict(r) for r in rows]})
 
             elif path == '/api/vocab':
-                if not user:
-                    return self._send_json({'status': 'error', 'message': 'Chưa đăng nhập'}, 401)
                 conn = get_db_connection()
-                rows = conn.execute("SELECT * FROM vocab_vault WHERE user_id = ? ORDER BY created_at DESC", (user['id'],)).fetchall()
+                rows = conn.execute("SELECT * FROM vocab_vault ORDER BY created_at DESC").fetchall()
                 conn.close()
                 return self._send_json({'status': 'success', 'vocab': [dict(r) for r in rows]})
 
@@ -377,10 +375,9 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
 
             return self._send_json({'status': 'success', 'message': 'Đã đồng bộ tiến trình vào Database!'})
 
-        # 4. Save Vocab API
+        # 4. Save/Update Vocab API
         elif path == '/api/vocab':
-            if not user:
-                return self._send_json({'status': 'error', 'message': 'Chưa đăng nhập'}, 401)
+            user_id = user['id'] if user else 1
 
             v_id = payload.get('id', 'vocab-' + str(int(secrets.token_hex(4), 16)))
             lang = payload.get('lang', 'EN')
@@ -401,13 +398,31 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
             INSERT INTO vocab_vault (id, user_id, lang, word, phonetic, translation_vi, explanation_en, example_sentence, example_translation, mastery_level)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
-                mastery_level = excluded.mastery_level,
-                translation_vi = excluded.translation_vi
-            """, (v_id, user['id'], lang, word, phonetic, trans_vi, exp_en, ex_sent, ex_trans, mastery))
+                word = excluded.word,
+                phonetic = excluded.phonetic,
+                translation_vi = excluded.translation_vi,
+                explanation_en = excluded.explanation_en,
+                example_sentence = excluded.example_sentence,
+                example_translation = excluded.example_translation,
+                mastery_level = excluded.mastery_level
+            """, (v_id, user_id, lang, word, phonetic, trans_vi, exp_en, ex_sent, ex_trans, mastery))
             conn.commit()
             conn.close()
 
             return self._send_json({'status': 'success', 'message': 'Đã lưu từ vựng vào Cơ sở dữ liệu!'})
+
+        # 4b. Delete Vocab API
+        elif path == '/api/vocab/delete':
+            v_id = payload.get('id')
+            if not v_id:
+                return self._send_json({'status': 'error', 'message': 'Thiếu ID từ vựng'}, 400)
+
+            conn = get_db_connection()
+            conn.execute("DELETE FROM vocab_vault WHERE id = ?", (v_id,))
+            conn.commit()
+            conn.close()
+
+            return self._send_json({'status': 'success', 'message': 'Đã xóa từ vựng khỏi Cơ sở dữ liệu!'})
 
         # 5. SRS Rate Vocab API
         elif path == '/api/vocab/srs-rate':

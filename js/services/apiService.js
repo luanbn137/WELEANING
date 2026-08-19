@@ -72,6 +72,10 @@ class ApiService {
     return this.request('/api/vocab', 'POST', vocabItem);
   }
 
+  async deleteVocab(vocabId) {
+    return this.request('/api/vocab/delete', 'POST', { id: vocabId });
+  }
+
   async rateVocabSRS(vocabId, masteryLevel) {
     return this.request('/api/vocab/srs-rate', 'POST', { id: vocabId, mastery_level: masteryLevel });
   }

@@ -699,8 +699,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // Save Vocab Button
-    document.getElementById('btn-save-vocab').addEventListener('click', async () => {
+    // Search Input Listener
+    const inpSearch = document.getElementById('inp-search-vocab');
+    if (inpSearch) {
+      inpSearch.addEventListener('input', () => {
+        renderVocabTable();
+      });
+    }
+
+    // Save/Update Vocab Button
+    document.getElementById('btn-save-vocab').addEventListener('click', async (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
       const word = document.getElementById('inp-vocab-word').value;
       const phonetic = document.getElementById('inp-vocab-phonetic').value;
       const transVi = document.getElementById('inp-vocab-trans-vi').value;
@@ -713,8 +726,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      const vocabId = state.editingVocabId || ('vocab-' + Date.now());
+
       const newVocab = {
-        id: 'vocab-' + Date.now(),
+        id: vocabId,
         lang: state.currentLang,
         word: word,
         phonetic: phonetic,
@@ -740,15 +755,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         masteryLevel: 1
       });
 
-      // Save to Backend Database if logged in
-      if (window.authService.isLoggedIn()) {
-        await window.apiService.saveVocab(newVocab);
-        showToast(`Đã lưu "${word}" vào SQLite Server Database!`, "success");
+      // Save to Backend Database Server
+      await window.apiService.saveVocab(newVocab);
+      
+      if (state.editingVocabId) {
+        showToast(`✨ Đã cập nhật từ vựng "${word}" thành công!`, "success");
       } else {
-        showToast(`Đã lưu "${word}" vào sổ từ vựng!`, "success");
+        showToast(`✨ Đã thêm từ vựng mới "${word}" vào hệ thống!`, "success");
       }
 
-      // Clear Form
+      // Reset Form & Editing State
+      state.editingVocabId = null;
+      const btnSave = document.getElementById('btn-save-vocab');
+      if (btnSave) {
+        btnSave.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu vào Sổ từ & DB`;
+        btnSave.className = 'btn btn-secondary';
+      }
+
       document.getElementById('inp-vocab-word').value = '';
       document.getElementById('inp-vocab-phonetic').value = '';
       document.getElementById('inp-vocab-trans-vi').value = '';
@@ -757,6 +780,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('inp-vocab-ex-trans').value = '';
 
       await renderVocabTable();
+      await saveUserSkillProgress('writing', 100);
       updateSRSBadgeCount();
     });
 
@@ -772,29 +796,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function renderVocabTable() {
     const tbody = document.getElementById('vocab-table-body');
     const filterVal = document.getElementById('filter-mastery').value;
+    const searchVal = (document.getElementById('inp-search-vocab')?.value || '').trim().toLowerCase();
     
     let items = window.vocabRepo.getByLang(state.currentLang);
 
-    // If logged in, merge/sync with Database items
-    if (window.authService.isLoggedIn()) {
-      const res = await window.apiService.getVocab();
-      if (res.status === 'success' && res.vocab) {
-        items = res.vocab.filter(i => i.lang === state.currentLang).map(i => ({
-          id: i.id,
-          lang: i.lang,
-          word: i.word,
-          phonetic: i.phonetic,
-          translationVi: i.translation_vi,
-          explanationEn: i.explanation_en,
-          exampleSentence: i.example_sentence,
-          exampleTranslation: i.example_translation,
-          masteryLevel: i.mastery_level || 1
-        }));
-      }
+    // Fetch live shared vocabulary database from Server
+    const res = await window.apiService.getVocab();
+    if (res && res.status === 'success' && res.vocab) {
+      items = res.vocab.filter(i => i.lang === state.currentLang).map(i => ({
+        id: i.id,
+        lang: i.lang,
+        word: i.word,
+        phonetic: i.phonetic,
+        translationVi: i.translation_vi,
+        explanationEn: i.explanation_en,
+        exampleSentence: i.example_sentence,
+        exampleTranslation: i.example_translation,
+        masteryLevel: i.mastery_level || 1
+      }));
     }
 
+    // Filter by Mastery Level
     if (filterVal !== 'ALL') {
       items = items.filter(i => i.masteryLevel === parseInt(filterVal, 10));
+    }
+
+    // Filter by Real-time Search Query
+    if (searchVal) {
+      items = items.filter(i => 
+        (i.word || '').toLowerCase().includes(searchVal) ||
+        (i.phonetic || '').toLowerCase().includes(searchVal) ||
+        (i.translationVi || '').toLowerCase().includes(searchVal) ||
+        (i.explanationEn || '').toLowerCase().includes(searchVal) ||
+        (i.exampleSentence || '').toLowerCase().includes(searchVal)
+      );
     }
 
     document.getElementById('vocab-total-count').textContent = `Tổng cộng: ${items.length} từ vựng`;
@@ -824,12 +859,49 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="mastery-pill lvl-${item.masteryLevel}">Level ${item.masteryLevel}</span>
         </td>
         <td>
-          <button class="btn btn-secondary btn-sm btn-speak-vocab"><i class="fa-solid fa-volume-high"></i></button>
+          <div style="display:flex; gap:0.35rem; align-items:center;">
+            <button class="btn btn-secondary btn-sm btn-speak-vocab" title="Nghe phát âm"><i class="fa-solid fa-volume-high"></i></button>
+            <button class="btn btn-primary btn-sm btn-edit-vocab" title="Chỉnh sửa từ vựng"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="btn btn-danger btn-sm btn-delete-vocab" style="background:#ef4444; color:#fff;" title="Xóa từ vựng"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
         </td>
       `;
 
+      // Speak Handler
       tr.querySelector('.btn-speak-vocab').addEventListener('click', () => {
         window.audioEngine.speak(item.word, state.currentLang, 1.0);
+      });
+
+      // Edit Handler
+      tr.querySelector('.btn-edit-vocab').addEventListener('click', () => {
+        state.editingVocabId = item.id;
+        document.getElementById('inp-vocab-word').value = item.word || '';
+        document.getElementById('inp-vocab-phonetic').value = item.phonetic || '';
+        document.getElementById('inp-vocab-trans-vi').value = item.translationVi || '';
+        document.getElementById('inp-vocab-exp-en').value = item.explanationEn || '';
+        document.getElementById('inp-vocab-ex-sentence').value = item.exampleSentence || '';
+        document.getElementById('inp-vocab-ex-trans').value = item.exampleTranslation || '';
+
+        const btnSave = document.getElementById('btn-save-vocab');
+        if (btnSave) {
+          btnSave.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Cập nhật Từ vựng`;
+          btnSave.className = 'btn btn-primary';
+        }
+
+        document.getElementById('inp-vocab-word').focus();
+        document.getElementById('inp-vocab-word').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast(`✏️ Đang chỉnh sửa từ "${item.word}"`, "info");
+      });
+
+      // Delete Handler
+      tr.querySelector('.btn-delete-vocab').addEventListener('click', async () => {
+        if (confirm(`Bạn có chắc chắn muốn xóa từ vựng "${item.word}" khỏi hệ thống?`)) {
+          window.vocabRepo.delete(item.id);
+          await window.apiService.deleteVocab(item.id);
+          showToast(`🗑️ Đã xóa từ vựng "${item.word}" khỏi hệ thống!`, "success");
+          await renderVocabTable();
+          updateSRSBadgeCount();
+        }
       });
 
       tbody.appendChild(tr);

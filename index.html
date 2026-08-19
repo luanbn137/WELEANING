@@ -422,8 +422,11 @@
           </div>
         </div>
 
-        <!-- Filter Bar -->
+        <!-- Search & Filter Bar -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+          <div style="display:flex; gap:0.75rem; align-items:center; flex:1; max-width:480px;">
+            <input type="text" id="inp-search-vocab" class="form-control" placeholder="🔍 Tìm kiếm từ vựng, phiên âm, dịch nghĩa..." style="background:rgba(255,255,255,0.05); border-radius:8px;">
+          </div>
           <div style="display:flex; gap:0.5rem; align-items:center;">
             <span class="text-muted" style="font-size:0.85rem; font-weight:600;">Bộ lọc:</span>
             <select id="filter-mastery" class="custom-select" style="background:rgba(255,255,255,0.05); padding:0.4rem 0.75rem; border-radius:8px;">
@@ -435,7 +438,7 @@
               <option value="5">Mastery Level 5 (Thành thạo)</option>
             </select>
           </div>
-          <small class="text-muted" id="vocab-total-count">Tổng cộng: 9 từ vựng</small>
+          <small class="text-muted" id="vocab-total-count">Tổng cộng: 0 từ vựng</small>
         </div>
 
         <!-- Vocab Data Table -->
