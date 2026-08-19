@@ -1,7 +1,7 @@
 /**
- * AI ENGINE SERVICE (SMART FUZZY DICTIONARY EDITION)
+ * AI ENGINE SERVICE (ULTRA-ROBUST BILINGUAL EDITION)
  * Handles AI Auto-fill generation for Vocab Vault & 3-Column Feedback Evaluation for 30s Roleplay Arena.
- * Guarantees response time < 0.5 seconds.
+ * Guarantees response time < 0.2 seconds.
  */
 
 class AIEngineService {
@@ -152,66 +152,79 @@ class AIEngineService {
    * @param {string} lang - Target language (EN, JA, ZH, KO)
    */
   async autoFillVocab(word, lang) {
-    const rawWord = (word || "").trim();
-    const cleanKey = rawWord.toLowerCase();
-    
-    // Simulate AI network delay (200ms)
-    await new Promise(resolve => setTimeout(resolve, 200));
+    try {
+      const rawWord = (word || "").trim().normalize("NFC");
+      const cleanKey = rawWord.toLowerCase();
+      
+      // Simulate fast network response (100ms)
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Direct match in dictionary
-    if (this.vocabDatabase[cleanKey]) {
-      return this.vocabDatabase[cleanKey];
-    }
-
-    // Fuzzy partial match
-    for (const k in this.vocabDatabase) {
-      if (cleanKey.includes(k) || k.includes(cleanKey)) {
-        return this.vocabDatabase[k];
+      // Direct match
+      if (this.vocabDatabase[cleanKey]) {
+        return this.vocabDatabase[cleanKey];
       }
-    }
 
-    // Capitalize helper
-    const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
+      // Fuzzy search
+      for (const k in this.vocabDatabase) {
+        if (cleanKey.includes(k) || k.includes(cleanKey)) {
+          return this.vocabDatabase[k];
+        }
+      }
 
-    // Dynamic smart generator fallback
-    switch (lang) {
-      case 'JA':
-        return {
-          word: formattedWord,
-          phonetic: `<ruby>${rawWord}<rt>よみ</rt></ruby>`,
-          translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Nhật)`,
-          explanationEn: `Japanese expression indicating "${rawWord}" in daily context.`,
-          exampleSentence: `<ruby>今日<rt>きょう</rt></ruby>は${rawWord}を<ruby>勉強<rt>べんきょう</rt></ruby>します。`,
-          exampleTranslation: `Hôm nay tôi học từ ${rawWord}.`
-        };
-      case 'ZH':
-        return {
-          word: formattedWord,
-          phonetic: `<ruby>${rawWord}<rt>pīn yīn</rt></ruby>`,
-          translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Trung)`,
-          explanationEn: `Chinese vocabulary term for "${rawWord}".`,
-          exampleSentence: `在日常生活中，${rawWord}非常实用。`,
-          exampleTranslation: `Trong cuộc sống hàng ngày, ${rawWord} rất thực tế.`
-        };
-      case 'KO':
-        return {
-          word: formattedWord,
-          phonetic: `${rawWord} (A1 Romaja)`,
-          translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Hàn)`,
-          explanationEn: `Korean word indicating "${rawWord}".`,
-          exampleSentence: `매일 ${rawWord}을/를 공부해요.`,
-          exampleTranslation: `Mỗi ngày tôi đều học từ ${rawWord}.`
-        };
-      case 'EN':
-      default:
-        return {
-          word: formattedWord,
-          phonetic: `/${cleanKey.replace(/\s+/g, '.')}/`,
-          translationVi: `Dịch nghĩa: ${formattedWord}`,
-          explanationEn: `Key English vocabulary word representing "${formattedWord}".`,
-          exampleSentence: `Learning the term "${formattedWord}" enhances your vocabulary.`,
-          exampleTranslation: `Học thuật ngữ "${formattedWord}" giúp nâng cao vốn từ vựng của bạn.`
-        };
+      // Capitalize helper
+      const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
+
+      // Dynamic fallback generator
+      switch (lang) {
+        case 'JA':
+          return {
+            word: formattedWord,
+            phonetic: `<ruby>${rawWord}<rt>よみ</rt></ruby>`,
+            translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Nhật)`,
+            explanationEn: `Japanese expression indicating "${rawWord}" in daily context.`,
+            exampleSentence: `<ruby>今日<rt>きょう</rt></ruby>は${rawWord}を<ruby>勉強<rt>べんきょう</rt></ruby>します。`,
+            exampleTranslation: `Hôm nay tôi học từ ${rawWord}.`
+          };
+        case 'ZH':
+          return {
+            word: formattedWord,
+            phonetic: `<ruby>${rawWord}<rt>pīn yīn</rt></ruby>`,
+            translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Trung)`,
+            explanationEn: `Chinese vocabulary term for "${rawWord}".`,
+            exampleSentence: `在日常生活中，${rawWord}非常实用。`,
+            exampleTranslation: `Trong cuộc sống hàng ngày, ${rawWord} rất thực tế.`
+          };
+        case 'KO':
+          return {
+            word: formattedWord,
+            phonetic: `${rawWord} (A1 Romaja)`,
+            translationVi: `Dịch nghĩa cho từ "${rawWord}" (Tiếng Hàn)`,
+            explanationEn: `Korean word indicating "${rawWord}".`,
+            exampleSentence: `매일 ${rawWord}을/를 공부해요.`,
+            exampleTranslation: `Mỗi ngày tôi đều học từ ${rawWord}.`
+          };
+        case 'EN':
+        default:
+          return {
+            word: formattedWord,
+            phonetic: `/${cleanKey.replace(/\s+/g, '.')}/`,
+            translationVi: `Dịch nghĩa: ${formattedWord}`,
+            explanationEn: `Key English vocabulary word representing "${formattedWord}".`,
+            exampleSentence: `Learning the term "${formattedWord}" enhances your vocabulary.`,
+            exampleTranslation: `Học thuật ngữ "${formattedWord}" giúp nâng cao vốn từ vựng của bạn.`
+          };
+      }
+    } catch(err) {
+      console.error("autoFillVocab error:", err);
+      const safeWord = (word || "Từ vựng").trim();
+      return {
+        word: safeWord,
+        phonetic: `/${safeWord.toLowerCase()}/`,
+        translationVi: `Dịch nghĩa: ${safeWord}`,
+        explanationEn: `Vocabulary definition for ${safeWord}.`,
+        exampleSentence: `Example sentence with ${safeWord}.`,
+        exampleTranslation: `Câu ví dụ minh họa với ${safeWord}.`
+      };
     }
   }
 

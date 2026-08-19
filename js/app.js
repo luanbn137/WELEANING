@@ -659,27 +659,45 @@ document.addEventListener('DOMContentLoaded', async () => {
      ========================================================================== */
 
   function setupVocabVault() {
-    document.getElementById('btn-ai-autofill').addEventListener('click', async () => {
-      const word = document.getElementById('inp-vocab-word').value;
-      if (!word.trim()) {
-        showToast("Vui lòng nhập từ vựng trước khi bấm Phân tích AI!", "warning");
-        return;
-      }
+    const btnAi = document.getElementById('btn-ai-autofill');
+    if (btnAi) {
+      btnAi.addEventListener('click', async (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
 
-      showToast("🤖 AI đang tự động phân tích phiên âm và nghĩa...", "info");
-      const res = await window.aiEngine.autoFillVocab(word, state.currentLang);
+        const wordInp = document.getElementById('inp-vocab-word');
+        const word = wordInp ? wordInp.value : '';
 
-      if (res.word) {
-        document.getElementById('inp-vocab-word').value = res.word;
-      }
-      document.getElementById('inp-vocab-phonetic').value = res.phonetic || '';
-      document.getElementById('inp-vocab-trans-vi').value = res.translationVi || '';
-      document.getElementById('inp-vocab-exp-en').value = res.explanationEn || '';
-      document.getElementById('inp-vocab-ex-sentence').value = res.exampleSentence || '';
-      document.getElementById('inp-vocab-ex-trans').value = res.exampleTranslation || '';
+        if (!word || !word.trim()) {
+          showToast("Vui lòng nhập từ vựng trước khi bấm Phân tích AI!", "warning");
+          return;
+        }
 
-      showToast("✨ AI Phân tích thành công!", "success");
-    });
+        showToast("🤖 AI đang tự động phân tích phiên âm và nghĩa...", "info");
+
+        try {
+          const res = await window.aiEngine.autoFillVocab(word, state.currentLang);
+          
+          if (res && res.word) {
+            document.getElementById('inp-vocab-word').value = res.word;
+          }
+          if (res) {
+            document.getElementById('inp-vocab-phonetic').value = res.phonetic || '';
+            document.getElementById('inp-vocab-trans-vi').value = res.translationVi || '';
+            document.getElementById('inp-vocab-exp-en').value = res.explanationEn || '';
+            document.getElementById('inp-vocab-ex-sentence').value = res.exampleSentence || '';
+            document.getElementById('inp-vocab-ex-trans').value = res.exampleTranslation || '';
+          }
+
+          showToast("✨ AI Phân tích thành công!", "success");
+        } catch(err) {
+          console.error("AI Auto-fill error:", err);
+          showToast("Lỗi phân tích AI!", "error");
+        }
+      });
+    }
 
     // Save Vocab Button
     document.getElementById('btn-save-vocab').addEventListener('click', async () => {
