@@ -4,6 +4,7 @@
  */
 
 const DEFAULT_VOCAB_ITEMS = [
+  // English Words (EN)
   {
     id: "vocab-1",
     lang: "EN",
@@ -52,8 +53,40 @@ const DEFAULT_VOCAB_ITEMS = [
     nextReviewDate: new Date(Date.now() + 86400000 * 2).toISOString(),
     lastReviewedDate: new Date().toISOString()
   },
+  {
+    id: "vocab-en-4",
+    lang: "EN",
+    word: "Pencil",
+    phonetic: "/ˈpen.səl/",
+    translationVi: "Cái bút chì",
+    explanationEn: "An instrument for writing or drawing consisting of graphite.",
+    exampleSentence: "I need a sharp pencil to sketch this portrait.",
+    exampleTranslation: "Tôi cần một chiếc bút chì gọt nhọn để phác thảo bức tranh.",
+    weekNum: 1,
+    topic: "Stationery",
+    tag: "Daily",
+    masteryLevel: 1,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
+  },
+  {
+    id: "vocab-en-5",
+    lang: "EN",
+    word: "Computer",
+    phonetic: "/kəmˈpjuː.tər/",
+    translationVi: "Máy tính / Máy vi tính",
+    explanationEn: "An electronic device for storing and processing data.",
+    exampleSentence: "I use my computer for coding and studying.",
+    exampleTranslation: "Tôi sử dụng máy tính của mình để lập trình và học tập.",
+    weekNum: 2,
+    topic: "Technology",
+    tag: "Work",
+    masteryLevel: 4,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
+  },
 
-  // Japanese Words
+  // Japanese Words (JA)
   {
     id: "vocab-4",
     lang: "JA",
@@ -86,8 +119,40 @@ const DEFAULT_VOCAB_ITEMS = [
     nextReviewDate: new Date(Date.now() + 86400000 * 4).toISOString(),
     lastReviewedDate: new Date().toISOString()
   },
+  {
+    id: "vocab-ja-3",
+    lang: "JA",
+    word: "<ruby>本<rt>ほん</rt></ruby>",
+    phonetic: "Hon",
+    translationVi: "Cuốn sách",
+    explanationEn: "A bound set of printed pages for reading.",
+    exampleSentence: "<ruby>毎日<rt>まいにち</rt></ruby><ruby>図書館<rt>としょかん</rt></ruby>で<ruby>本<rt>ほん</rt></ruby>を<ruby>読<rt>よ</rt></ruby>みます。",
+    exampleTranslation: "Tôi đọc sách ở thư viện mỗi ngày.",
+    weekNum: 1,
+    topic: "Education",
+    tag: "Daily",
+    masteryLevel: 2,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
+  },
+  {
+    id: "vocab-ja-4",
+    lang: "JA",
+    word: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>",
+    phonetic: "Enpitsu",
+    translationVi: "Cái bút chì",
+    explanationEn: "Japanese word for pencil.",
+    exampleSentence: "<ruby>鉛筆<rt>えんぴつ</rt></ruby>で下書きを<ruby>書<rt>か</rt></ruby>きます。",
+    exampleTranslation: "Tôi viết bản phác thảo bằng bút chì.",
+    weekNum: 2,
+    topic: "Stationery",
+    tag: "Daily",
+    masteryLevel: 1,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
+  },
 
-  // Chinese Words
+  // Chinese Words (ZH)
   {
     id: "vocab-6",
     lang: "ZH",
@@ -120,8 +185,40 @@ const DEFAULT_VOCAB_ITEMS = [
     nextReviewDate: new Date().toISOString(),
     lastReviewedDate: new Date().toISOString()
   },
+  {
+    id: "vocab-zh-3",
+    lang: "ZH",
+    word: "<ruby>书本<rt>shū běn</rt></ruby>",
+    phonetic: "shū běn",
+    translationVi: "Cuốn sách / Sách vở",
+    explanationEn: "A written or printed work consisting of pages.",
+    exampleSentence: "我在图书馆借了一本书。",
+    exampleTranslation: "Tôi đã mượn một cuốn sách ở thư viện.",
+    weekNum: 1,
+    topic: "Education",
+    tag: "Daily",
+    masteryLevel: 3,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
+  },
+  {
+    id: "vocab-zh-4",
+    lang: "ZH",
+    word: "<ruby>铅笔<rt>qiān bǐ</rt></ruby>",
+    phonetic: "qiān bǐ",
+    translationVi: "Cái bút chì",
+    explanationEn: "Chinese word for pencil.",
+    exampleSentence: "请用铅笔在考卷上作答。",
+    exampleTranslation: "Xin vui lòng trả lời bằng bút chì trên bài thi.",
+    weekNum: 2,
+    topic: "Stationery",
+    tag: "Daily",
+    masteryLevel: 1,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
+  },
 
-  // Korean Words
+  // Korean Words (KO)
   {
     id: "vocab-8",
     lang: "KO",
@@ -153,6 +250,38 @@ const DEFAULT_VOCAB_ITEMS = [
     masteryLevel: 3,
     nextReviewDate: new Date(Date.now() + 86400000 * 3).toISOString(),
     lastReviewedDate: new Date().toISOString()
+  },
+  {
+    id: "vocab-ko-3",
+    lang: "KO",
+    word: "책",
+    phonetic: "chaek",
+    translationVi: "Cuốn sách / Sách",
+    explanationEn: "A bound collection of printed pages.",
+    exampleSentence: "저는 매일 도서관에서 책을 읽습니다.",
+    exampleTranslation: "Tôi đọc sách ở thư viện mỗi ngày.",
+    weekNum: 1,
+    topic: "Education",
+    tag: "Daily",
+    masteryLevel: 2,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
+  },
+  {
+    id: "vocab-ko-4",
+    lang: "KO",
+    word: "연필",
+    phonetic: "yeon-pil",
+    translationVi: "Cái bút chì",
+    explanationEn: "Korean word for pencil.",
+    exampleSentence: "시험 볼 때 연필을 사용하세요.",
+    exampleTranslation: "Hãy sử dụng bút chì khi làm bài thi.",
+    weekNum: 2,
+    topic: "Stationery",
+    tag: "Daily",
+    masteryLevel: 1,
+    nextReviewDate: new Date().toISOString(),
+    lastReviewedDate: new Date().toISOString()
   }
 ];
 
@@ -165,7 +294,12 @@ class VocabRepository {
   loadFromStorage() {
     const raw = localStorage.getItem(this.storageKey);
     if (raw) {
-      try { return JSON.parse(raw); } catch(e) {}
+      try { 
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length >= DEFAULT_VOCAB_ITEMS.length) {
+          return parsed;
+        }
+      } catch(e) {}
     }
     return DEFAULT_VOCAB_ITEMS;
   }
@@ -213,6 +347,11 @@ class VocabRepository {
       target.nextReviewDate = nextDate.toISOString();
       this.saveToStorage();
     }
+  }
+
+  delete(id) {
+    this.items = this.items.filter(i => i.id !== id);
+    this.saveToStorage();
   }
 }
 
