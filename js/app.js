@@ -726,11 +726,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      const user = window.authService.getUser();
+      const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
+
       const vocabId = state.editingVocabId || ('vocab-' + Date.now());
 
       const newVocab = {
         id: vocabId,
-        lang: state.currentLang,
+        lang: 'ALL',
         word: word,
         phonetic: phonetic,
         translation_vi: transVi,
@@ -738,13 +741,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         example_sentence: exSentence,
         example_translation: exTrans,
         week_num: state.currentWeek,
-        mastery_level: 1
+        mastery_level: 1,
+        created_by: createdBy
       };
 
       // Save locally
       window.vocabRepo.add({
         id: newVocab.id,
-        lang: newVocab.lang,
+        lang: 'ALL',
         word: newVocab.word,
         phonetic: newVocab.phonetic,
         translationVi: newVocab.translation_vi,
@@ -752,7 +756,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         exampleSentence: newVocab.example_sentence,
         exampleTranslation: newVocab.example_translation,
         weekNum: newVocab.week_num,
-        masteryLevel: 1
+        masteryLevel: 1,
+        createdBy: createdBy
       });
 
       // Save to Backend Database Server
@@ -803,7 +808,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Fetch live shared vocabulary database from Server
     const res = await window.apiService.getVocab();
     if (res && res.status === 'success' && res.vocab) {
-      items = res.vocab.filter(i => i.lang === state.currentLang).map(i => ({
+      items = res.vocab.map(i => ({
         id: i.id,
         lang: i.lang,
         word: i.word,
@@ -812,7 +817,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         explanationEn: i.explanation_en,
         exampleSentence: i.example_sentence,
         exampleTranslation: i.example_translation,
-        masteryLevel: i.mastery_level || 1
+        masteryLevel: i.mastery_level || 1,
+        createdBy: i.created_by || null
       }));
     }
 
@@ -828,7 +834,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         (i.phonetic || '').toLowerCase().includes(searchVal) ||
         (i.translationVi || '').toLowerCase().includes(searchVal) ||
         (i.explanationEn || '').toLowerCase().includes(searchVal) ||
-        (i.exampleSentence || '').toLowerCase().includes(searchVal)
+        (i.exampleSentence || '').toLowerCase().includes(searchVal) ||
+        (i.createdBy || '').toLowerCase().includes(searchVal)
       );
     }
 
@@ -841,11 +848,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     items.forEach(item => {
+      const contributorBadge = (item.createdBy && item.createdBy !== 'admin') 
+        ? `<div style="font-size:0.75rem; color:var(--accent-cyan); margin-top:0.25rem; font-weight:500;"><i class="fa-solid fa-user-pen"></i> Thêm bởi: ${item.createdBy}</div>` 
+        : '';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
           <div class="ruby-text" style="font-weight:700; font-size:1.1rem; color:var(--text-main);">${item.word}</div>
           <div class="text-muted" style="font-size:0.8rem;">${item.phonetic || ''}</div>
+          ${contributorBadge}
         </td>
         <td>
           <div style="font-weight:600; color:var(--secondary);">${item.translationVi}</div>

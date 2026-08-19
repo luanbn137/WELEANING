@@ -89,12 +89,19 @@ def init_database():
         topic TEXT,
         tag TEXT DEFAULT 'General',
         mastery_level INTEGER DEFAULT 1,
+        created_by TEXT DEFAULT NULL,
         next_review_date TIMESTAMP,
         last_reviewed_date TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
     """)
+
+    # Schema migration for existing DB
+    try:
+        cursor.execute("ALTER TABLE vocab_vault ADD COLUMN created_by TEXT DEFAULT NULL")
+    except Exception:
+        pass
 
     # 5. Roleplay History Table
     cursor.execute("""
@@ -375,12 +382,21 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
 
             return self._send_json({'status': 'success', 'message': 'Đã đồng bộ tiến trình vào Database!'})
 
-        # 4. Save/Update Vocab API
+        # 4. Save/Update Vocab API (Multi-language & Contributor tracking)
         elif path == '/api/vocab':
             user_id = user['id'] if user else 1
+            
+            # Determine contributor name (except admin)
+            created_by = None
+            if user:
+                if user['role'] != 'admin':
+                    created_by = user['full_name'] or user['username']
+            else:
+                created_by = 'Học viên'
 
             v_id = payload.get('id', 'vocab-' + str(int(secrets.token_hex(4), 16)))
-            lang = payload.get('lang', 'EN')
+            # Force lang = 'ALL' so vocabulary is available across ALL languages
+            lang = 'ALL'
             word = payload.get('word', '').strip()
             phonetic = payload.get('phonetic', '')
             trans_vi = payload.get('translation_vi', '').strip()
@@ -395,8 +411,8 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-            INSERT INTO vocab_vault (id, user_id, lang, word, phonetic, translation_vi, explanation_en, example_sentence, example_translation, mastery_level)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO vocab_vault (id, user_id, lang, word, phonetic, translation_vi, explanation_en, example_sentence, example_translation, mastery_level, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 word = excluded.word,
                 phonetic = excluded.phonetic,
@@ -404,8 +420,9 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
                 explanation_en = excluded.explanation_en,
                 example_sentence = excluded.example_sentence,
                 example_translation = excluded.example_translation,
-                mastery_level = excluded.mastery_level
-            """, (v_id, user_id, lang, word, phonetic, trans_vi, exp_en, ex_sent, ex_trans, mastery))
+                mastery_level = excluded.mastery_level,
+                created_by = excluded.created_by
+            """, (v_id, user_id, lang, word, phonetic, trans_vi, exp_en, ex_sent, ex_trans, mastery, created_by))
             conn.commit()
             conn.close()
 
