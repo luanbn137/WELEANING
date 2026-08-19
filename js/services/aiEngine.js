@@ -120,6 +120,15 @@ class AIEngineService {
     }
   }
 
+  async autoFillAllLangs(word) {
+    const langs = ['EN', 'JA', 'ZH', 'KO'];
+    const results = {};
+    for (const l of langs) {
+      results[l] = await this.autoFillVocab(word, l);
+    }
+    return results;
+  }
+
   async evaluateRoleplay(userResponse, roleplayContext, lang) {
     const startTime = Date.now();
     await new Promise(resolve => setTimeout(resolve, 800));

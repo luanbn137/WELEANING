@@ -817,47 +817,103 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      // 1. DUPLICATE CHECK WARNING
+      const cleanWord = word.trim().normalize("NFC").toLowerCase();
+      const existingItems = window.vocabRepo.getAll();
+      const isDuplicate = existingItems.some(i => 
+        (i.word || '').trim().normalize("NFC").toLowerCase() === cleanWord
+      );
+
+      if (isDuplicate && !state.editingVocabId) {
+        showToast(`⚠️ Từ vựng "${word}" đã tồn tại trong Sổ từ vựng! Vui lòng không thêm trùng.`, "warning");
+        return;
+      }
+
       const user = window.authService.getUser();
       const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
 
-      const vocabId = state.editingVocabId || ('vocab-' + Date.now());
-
-      const newVocab = {
-        id: vocabId,
-        lang: state.currentLang,
-        word: word,
-        phonetic: phonetic,
-        translation_vi: transVi,
-        explanation_en: expEn,
-        example_sentence: exSentence,
-        example_translation: exTrans,
-        week_num: state.currentWeek,
-        mastery_level: 1,
-        created_by: createdBy
-      };
-
-      // Save locally
-      window.vocabRepo.add({
-        id: newVocab.id,
-        lang: state.currentLang,
-        word: newVocab.word,
-        phonetic: newVocab.phonetic,
-        translationVi: newVocab.translation_vi,
-        explanationEn: newVocab.explanation_en,
-        exampleSentence: newVocab.example_sentence,
-        exampleTranslation: newVocab.example_translation,
-        weekNum: newVocab.week_num,
-        masteryLevel: 1,
-        createdBy: createdBy
-      });
-
-      // Save to Backend Database Server
-      await window.apiService.saveVocab(newVocab);
-      
       if (state.editingVocabId) {
+        // Editing single item
+        const newVocab = {
+          id: state.editingVocabId,
+          lang: state.currentLang,
+          word: word,
+          phonetic: phonetic,
+          translation_vi: transVi,
+          explanation_en: expEn,
+          example_sentence: exSentence,
+          example_translation: exTrans,
+          week_num: state.currentWeek,
+          mastery_level: 1,
+          created_by: createdBy
+        };
+
+        window.vocabRepo.add({
+          id: newVocab.id,
+          lang: state.currentLang,
+          word: newVocab.word,
+          phonetic: newVocab.phonetic,
+          translationVi: newVocab.translation_vi,
+          explanationEn: newVocab.explanation_en,
+          exampleSentence: newVocab.example_sentence,
+          exampleTranslation: newVocab.example_translation,
+          weekNum: newVocab.week_num,
+          masteryLevel: 1,
+          createdBy: createdBy
+        });
+
+        await window.apiService.saveVocab(newVocab);
         showToast(`✨ Đã cập nhật từ vựng "${word}" thành công!`, "success");
       } else {
-        showToast(`✨ Đã thêm từ vựng mới "${word}" vào hệ thống (${state.currentLang})!`, "success");
+        // 2. AUTOMATIC 4-LANGUAGE SYNCHRONIZED SAVE (EN, JA, ZH, KO)
+        showToast(`🔄 Đang tự động dịch và đồng bộ từ vựng sang 4 ngôn ngữ (Anh, Nhật, Trung, Hàn)...`, "info");
+        const allLangData = await window.aiEngine.autoFillAllLangs(word);
+        const targetLangs = ['EN', 'JA', 'ZH', 'KO'];
+        const syncTimestamp = Date.now();
+
+        for (const targetLang of targetLangs) {
+          const langData = allLangData[targetLang] || {};
+          const itemWord = (targetLang === state.currentLang) ? word : (langData.word || word);
+          const itemPhonetic = (targetLang === state.currentLang) ? phonetic : (langData.phonetic || '');
+          const itemTransVi = (targetLang === state.currentLang) ? transVi : (langData.translationVi || transVi);
+          const itemExpEn = (targetLang === state.currentLang) ? expEn : (langData.explanationEn || '');
+          const itemExSent = (targetLang === state.currentLang) ? exSentence : (langData.exampleSentence || '');
+          const itemExTrans = (targetLang === state.currentLang) ? exTrans : (langData.exampleTranslation || '');
+
+          const itemVocab = {
+            id: `vocab-${syncTimestamp}-${targetLang}`,
+            lang: targetLang,
+            word: itemWord,
+            phonetic: itemPhonetic,
+            translation_vi: itemTransVi,
+            explanation_en: itemExpEn,
+            example_sentence: itemExSent,
+            example_translation: itemExTrans,
+            week_num: state.currentWeek,
+            mastery_level: 1,
+            created_by: createdBy
+          };
+
+          // Save locally
+          window.vocabRepo.add({
+            id: itemVocab.id,
+            lang: targetLang,
+            word: itemVocab.word,
+            phonetic: itemVocab.phonetic,
+            translationVi: itemVocab.translation_vi,
+            explanationEn: itemVocab.explanation_en,
+            exampleSentence: itemVocab.example_sentence,
+            exampleTranslation: itemVocab.example_translation,
+            weekNum: state.currentWeek,
+            masteryLevel: 1,
+            createdBy: createdBy
+          });
+
+          // Save to Server DB
+          await window.apiService.saveVocab(itemVocab);
+        }
+
+        showToast(`✨ Đã tự động đồng bộ từ vựng "${word}" sang cả 4 ngôn ngữ (Anh, Nhật, Trung, Hàn)!`, "success");
       }
 
       // Reset Form & Editing State
