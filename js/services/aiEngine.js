@@ -78,6 +78,34 @@ class AIEngineService {
         "JA": { word: "<ruby>勉強<rt>べんきょう</rt></ruby>", phonetic: "Benkyō", translationVi: "Học tập", explanationEn: "Study in Japanese.", exampleSentence: "<ruby>毎日<rt>まいにち</rt></ruby><ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>します。", exampleTranslation: "Mỗi ngày tôi đều học tiếng Nhật." },
         "ZH": { word: "<ruby>学习<rt>xué xí</rt></ruby>", phonetic: "xué xí", translationVi: "Học tập", explanationEn: "Study in Chinese.", exampleSentence: "努力学习，天天向上。", exampleTranslation: "Nỗ lực học tập, mỗi ngày tiến lên." },
         "KO": { word: "공부", phonetic: "gong-bu", translationVi: "Học tập", explanationEn: "Study in Korean.", exampleSentence: "매일 열심히 한국어를 공부해요.", exampleTranslation: "Mỗi ngày tôi đều chăm chỉ học tiếng Hàn." }
+      },
+
+      // 7. Gia đình / Family
+      "gia đình": {
+        "EN": { word: "Family", phonetic: "/ˈfæm.əl.i/", translationVi: "Gia đình", explanationEn: "A group of one or more parents and their children living together.", exampleSentence: "Family is the most important thing in life.", exampleTranslation: "Gia đình là điều quan trọng nhất trong cuộc sống." },
+        "JA": { word: "<ruby>家族<rt>かぞく</rt></ruby>", phonetic: "Kazoku", translationVi: "Gia đình", explanationEn: "Family in Japanese.", exampleSentence: "<ruby>私<rt>わたし</rt></ruby>の<ruby>家族<rt>かぞく</rt></ruby>は４<ruby>人<rt>にん</rt></ruby>です。", exampleTranslation: "Gia đình tôi có 4 người." },
+        "ZH": { word: "<ruby>家庭<rt>jiā tíng</rt></ruby>", phonetic: "jiā tíng", translationVi: "Gia đình / Mái ấm", explanationEn: "Family in Chinese.", exampleSentence: "这是一个幸福的家庭。", exampleTranslation: "Đây là một gia đình hạnh phúc." },
+        "KO": { word: "가족", phonetic: "ga-jok", translationVi: "Gia đình", explanationEn: "Family in Korean.", exampleSentence: "가족들과 함께 즐거운 시간을 보냈어요.", exampleTranslation: "Tôi đã trải qua thời gian vui vẻ bên gia đình." }
+      },
+      "family": {
+        "EN": { word: "Family", phonetic: "/ˈfæm.əl.i/", translationVi: "Gia đình", explanationEn: "Group of individuals living together.", exampleSentence: "I love spending weekends with my family.", exampleTranslation: "Tôi thích dành cuối tuần bên gia đình." },
+        "JA": { word: "<ruby>家族<rt>かぞく</rt></ruby>", phonetic: "Kazoku", translationVi: "Gia đình", explanationEn: "Family in Japanese.", exampleSentence: "<ruby>家族<rt>かぞく</rt></ruby>で<ruby>旅行<rt>りょこう</rt></ruby>に<ruby>行<rt>い</rt></ruby>きました。", exampleTranslation: "Tôi đã đi du lịch cùng gia đình." },
+        "ZH": { word: "<ruby>家人<rt>jiā rén</rt></ruby>", phonetic: "jiā rén", translationVi: "Người thân gia đình", explanationEn: "Family members in Chinese.", exampleSentence: "我和家人住在一起。", exampleTranslation: "Tôi sống cùng với gia đình." },
+        "KO": { word: "가족", phonetic: "ga-jok", translationVi: "Gia đình", explanationEn: "Family in Korean.", exampleSentence: "가족은 소중해요.", exampleTranslation: "Gia đình là quý giá nhất." }
+      },
+
+      // 8. Trường học / School
+      "trường": {
+        "EN": { word: "School", phonetic: "/skuːl/", translationVi: "Trường học", explanationEn: "An institution for educating children or students.", exampleSentence: "Students go to school to learn.", exampleTranslation: "Học sinh đến trường để học tập." },
+        "JA": { word: "<ruby>学校<rt>がっこう</rt></ruby>", phonetic: "Gakkō", translationVi: "Trường học", explanationEn: "School in Japanese.", exampleSentence: "<ruby>朝<rt>あさ</rt></ruby>８<ruby>時<rt>じ</rt></ruby>に<ruby>学校<rt>がっこう</rt></ruby>へ<ruby>行<rt>い</rt></ruby>きます。", exampleTranslation: "Tôi đến trường lúc 8 giờ sáng." },
+        "ZH": { word: "<ruby>学校<rt>xué xiào</rt></ruby>", phonetic: "xué xiào", translationVi: "Trường học", explanationEn: "School in Chinese.", exampleSentence: "我们的学校非常美丽。", exampleTranslation: "Trường học của chúng tôi rất đẹp." },
+        "KO": { word: "학교", phonetic: "hak-gyo", translationVi: "Trường học", explanationEn: "School in Korean.", exampleSentence: "아침마다 학교에 가요.", exampleTranslation: "Mỗi buổi sáng tôi đều đến trường." }
+      },
+      "school": {
+        "EN": { word: "School", phonetic: "/skuːl/", translationVi: "Trường học", explanationEn: "Educational institution.", exampleSentence: "Our school has a large library.", exampleTranslation: "Trường chúng tôi có một thư viện lớn." },
+        "JA": { word: "<ruby>学校<rt>がっこう</rt></ruby>", phonetic: "Gakkō", translationVi: "Trường học", explanationEn: "School in Japanese.", exampleSentence: "<ruby>学校<rt>がっこう</rt></ruby>の<ruby>友達<rt>ともだち</rt></ruby>と<ruby>遊<rt>あそ</rt></ruby>ぶ。", exampleTranslation: "Chơi cùng bạn ở trường." },
+        "ZH": { word: "<ruby>学校<rt>xué xiào</rt></ruby>", phonetic: "xué xiào", translationVi: "Trường học", explanationEn: "School in Chinese.", exampleSentence: "我在学校学习英语。", exampleTranslation: "Tôi học tiếng Anh ở trường." },
+        "KO": { word: "학교", phonetic: "hak-gyo", translationVi: "Trường học", explanationEn: "School in Korean.", exampleSentence: "학교에서 공부해요.", exampleTranslation: "Học tập ở trường." }
       }
     };
   }
