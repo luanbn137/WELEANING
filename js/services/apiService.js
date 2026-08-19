@@ -88,8 +88,12 @@ class ApiService {
     return this.request('/api/admin/stats', 'GET');
   }
 
-  async forgotPassword(email, newPassword) {
-    return this.request('/api/auth/forgot-password', 'POST', { email, new_password: newPassword });
+  async sendOTP(email) {
+    return this.request('/api/auth/send-otp', 'POST', { email });
+  }
+
+  async forgotPassword(email, newPassword, otpCode = '') {
+    return this.request('/api/auth/forgot-password', 'POST', { email, new_password: newPassword, otp_code: otpCode });
   }
 
   async changePassword(currentPassword, newPassword) {

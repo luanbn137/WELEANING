@@ -160,19 +160,51 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
+    // Send OTP Button
+    const btnSendOtp = document.getElementById('btn-send-otp');
+    if (btnSendOtp) {
+      btnSendOtp.addEventListener('click', async () => {
+        const email = document.getElementById('forgot-email').value.trim();
+        if (!email) {
+          showToast("Vui lòng nhập Email tài khoản trước khi lấy OTP!", "warning");
+          return;
+        }
+
+        showToast(`Đang gửi mã OTP đến email ${email}...`, "info");
+        const res = await window.authService.sendOTP(email);
+
+        if (res.status === 'success') {
+          showToast(res.message, "success");
+          if (res.otp_demo) {
+            document.getElementById('forgot-otp-code').value = res.otp_demo;
+          }
+        } else {
+          showToast(res.message || "Không thể gửi OTP!", "error");
+        }
+      });
+    }
+
     // Forgot Password Submission
     if (formForgot) {
       formForgot.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('forgot-email').value;
+        const email = document.getElementById('forgot-email').value.trim();
+        const otpCode = document.getElementById('forgot-otp-code')?.value.trim() || '';
         const newPwd = document.getElementById('forgot-password').value;
 
-        showToast("Đang gửi yêu cầu đặt lại mật khẩu...", "info");
-        const res = await window.authService.forgotPassword(email, newPwd);
+        if (!otpCode) {
+          showToast("Vui lòng nhập mã xác thực OTP gửi qua Email!", "warning");
+          return;
+        }
+
+        showToast("Đang xác thực OTP & đặt lại mật khẩu...", "info");
+        const res = await window.authService.forgotPassword(email, newPwd, otpCode);
 
         if (res.status === 'success') {
-          showToast(res.message || "Đặt lại mật khẩu thành công!", "success");
+          showToast(res.message || "🎉 Đặt lại mật khẩu thành công!", "success");
           tabLogin.click();
+          document.getElementById('login-email').value = email;
+          document.getElementById('login-password').value = newPwd;
         } else {
           showToast(res.message || "Không thể đặt lại mật khẩu!", "error");
         }

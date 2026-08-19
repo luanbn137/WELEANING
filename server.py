@@ -42,9 +42,15 @@ def init_database():
         streak INTEGER DEFAULT 5,
         xp INTEGER DEFAULT 120,
         gems INTEGER DEFAULT 50,
+        reset_otp TEXT DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     """)
+
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN reset_otp TEXT DEFAULT NULL")
+    except Exception:
+        pass
 
     # 2. Sessions Table (Auth Tokens)
     cursor.execute("""
@@ -324,7 +330,7 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
 
         # 2. Login API
         elif path == '/api/auth/login':
-            email = payload.get('email', '').strip()
+            email = payload.get('email', '').strip().lower()
             password = payload.get('password', '').strip()
 
             if not email or not password:
@@ -334,7 +340,7 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
             conn = get_db_connection()
             cursor = conn.cursor()
             
-            row = cursor.execute("SELECT id, username, email, full_name, role, streak, xp, gems FROM users WHERE (email = ? OR username = ?) AND password_hash = ?", (email, email, pwd_hash)).fetchone()
+            row = cursor.execute("SELECT id, username, email, full_name, role, streak, xp, gems FROM users WHERE (LOWER(email) = ? OR LOWER(username) = ?) AND password_hash = ?", (email, email, pwd_hash)).fetchone()
             
             if not row:
                 conn.close()
@@ -353,9 +359,36 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
                 'user': logged_user
             })
 
-        # 2b. Forgot Password API
+        # 2b. Send OTP Email API
+        elif path == '/api/auth/send-otp':
+            email = payload.get('email', '').strip().lower()
+            if not email:
+                return self._send_json({'status': 'error', 'message': 'Vui lòng nhập Email tài khoản!'}, 400)
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            usr = cursor.execute("SELECT id, email FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?", (email, email)).fetchone()
+
+            if not usr:
+                conn.close()
+                return self._send_json({'status': 'error', 'message': 'Không tìm thấy tài khoản tương ứng với Email này!'}, 404)
+
+            # Generate 6-digit OTP
+            otp = str(secrets.randbelow(899999) + 100000)
+            cursor.execute("UPDATE users SET reset_otp = ? WHERE id = ?", (otp, usr['id']))
+            conn.commit()
+            conn.close()
+
+            return self._send_json({
+                'status': 'success',
+                'message': f'Mã xác thực OTP đã được gửi về email {usr["email"]}! Mã OTP của bạn là: [{otp}]',
+                'otp_demo': otp
+            })
+
+        # 2c. Forgot Password with OTP API
         elif path == '/api/auth/forgot-password':
-            email = payload.get('email', '').strip()
+            email = payload.get('email', '').strip().lower()
+            otp_code = payload.get('otp_code', '').strip()
             new_pwd = payload.get('new_password', '').strip()
 
             if not email or not new_pwd:
@@ -363,14 +396,18 @@ class CapstoneRequestHandler(BaseHTTPRequestHandler):
 
             conn = get_db_connection()
             cursor = conn.cursor()
-            usr = cursor.execute("SELECT id FROM users WHERE email = ? OR username = ?", (email, email)).fetchone()
+            usr = cursor.execute("SELECT id, reset_otp FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?", (email, email)).fetchone()
 
             if not usr:
                 conn.close()
                 return self._send_json({'status': 'error', 'message': 'Không tìm thấy tài khoản với Email này!'}, 404)
 
+            if otp_code and usr['reset_otp'] and usr['reset_otp'] != otp_code:
+                conn.close()
+                return self._send_json({'status': 'error', 'message': 'Mã xác thực OTP không chính xác!'}, 400)
+
             new_hash = hash_password(new_pwd)
-            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, usr['id']))
+            cursor.execute("UPDATE users SET password_hash = ?, reset_otp = NULL WHERE id = ?", (new_hash, usr['id']))
             conn.commit()
             conn.close()
 

@@ -1,26 +1,35 @@
 /**
- * AUTHENTICATION SERVICE
- * Handles User Registration, Login, Forgot Password, Change Password, Token Management, and Profile Sync
+ * AUTHENTICATION SERVICE (SESSION PERSISTENCE & OTP EDITION)
+ * Handles User Registration, Login, Session Persistence across F5 Reloads,
+ * Forgot Password with OTP, Change Password, and Profile Sync
  */
 
 class AuthService {
   constructor() {
     this.currentUser = null;
     this.tokenKey = 'capstone_auth_token';
+    this.userKey = 'capstone_user_info';
   }
 
   async init() {
     const token = localStorage.getItem(this.tokenKey);
+    const savedUser = localStorage.getItem(this.userKey);
+
+    if (savedUser) {
+      try {
+        this.currentUser = JSON.parse(savedUser);
+      } catch(e) {}
+    }
+
     if (token) {
       const res = await window.apiService.request('/api/auth/me');
-      if (res.status === 'success') {
+      if (res.status === 'success' && res.user) {
         this.currentUser = res.user;
+        localStorage.setItem(this.userKey, JSON.stringify(res.user));
         return res.user;
-      } else {
-        this.logout();
       }
     }
-    return null;
+    return this.currentUser;
   }
 
   async register(username, email, password, fullName) {
@@ -33,6 +42,7 @@ class AuthService {
 
     if (res.status === 'success') {
       localStorage.setItem(this.tokenKey, res.token);
+      localStorage.setItem(this.userKey, JSON.stringify(res.user));
       this.currentUser = res.user;
     }
     return res;
@@ -46,13 +56,18 @@ class AuthService {
 
     if (res.status === 'success') {
       localStorage.setItem(this.tokenKey, res.token);
+      localStorage.setItem(this.userKey, JSON.stringify(res.user));
       this.currentUser = res.user;
     }
     return res;
   }
 
-  async forgotPassword(email, newPassword) {
-    return await window.apiService.forgotPassword(email, newPassword);
+  async sendOTP(email) {
+    return await window.apiService.sendOTP(email);
+  }
+
+  async forgotPassword(email, newPassword, otpCode = '') {
+    return await window.apiService.forgotPassword(email, newPassword, otpCode);
   }
 
   async changePassword(currentPassword, newPassword) {
@@ -61,6 +76,7 @@ class AuthService {
 
   logout() {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
     this.currentUser = null;
   }
 
