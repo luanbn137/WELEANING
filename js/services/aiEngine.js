@@ -156,7 +156,7 @@ class AIEngineService {
       const rawWord = (word || "").trim().normalize("NFC");
       const cleanKey = rawWord.toLowerCase();
       
-      // Simulate fast network response (100ms)
+      // Fast response
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Direct match
@@ -252,21 +252,21 @@ class AIEngineService {
 
     if (lang === 'EN') {
       if (responseTrim.includes(" want ")) {
-        highlightedHtml = responseTrim.replace(" want ", ' <span class="error-underline-yellow" title="Nên dùng 'would like' để thể hiện sự lịch sự hơn trong giao tiếp">want</span> ');
+        highlightedHtml = responseTrim.replace(" want ", ' <span class="error-underline-yellow" title="Nên dùng would like để thể hiện sự lịch sự">want</span> ');
         feedbackNotes.push("💡 **Mẹo lịch sự**: Thay vì dùng 'want', người bản xứ ưu tiên dùng 'would like' hoặc 'I'd love'.");
       }
       if (responseTrim.toLowerCase().includes(" expensive ")) {
-        highlightedHtml = highlightedHtml.replace(/expensive/i, '<span class="error-underline-yellow" title="Văn phong tự nhiên: 'steep' hoặc 'a bit high'">expensive</span>');
+        highlightedHtml = highlightedHtml.replace(/expensive/i, '<span class="error-underline-yellow" title="Văn phong tự nhiên: steep hoặc a bit high">expensive</span>');
         feedbackNotes.push("🗣 **Văn phong đời thường**: Thay vì 'expensive', dùng 'steep' nghe rất tự nhiên!");
       }
     } else if (lang === 'JA') {
       if (!responseTrim.includes("です") && !responseTrim.includes("ます") && !responseTrim.includes("お願い")) {
-        highlightedHtml = responseTrim + ' <span class="error-underline-red" title="Thiếu trợ từ hoặc đuôi lịch sự (です/ます/お願いします)">[!]</span>';
+        highlightedHtml = responseTrim + ' <span class="error-underline-red" title="Thiếu đuôi lịch sự (です/ます/お願いします)">[!]</span>';
         feedbackNotes.push("⚠️ **Ngữ pháp**: Đừng quên thêm 'です/ます' hoặc 'お願いします' để giữ phép lịch sự.");
       }
     } else if (lang === 'ZH') {
       if (responseTrim.includes("想要")) {
-        highlightedHtml = responseTrim.replace("想要", '<span class="error-underline-yellow" title="Khi gọi món, dùng '我要...' trực tiếp và tự nhiên hơn">想要</span>');
+        highlightedHtml = responseTrim.replace("想要", '<span class="error-underline-yellow" title="Khi gọi món, dùng 我要... trực tiếp">想要</span>');
         feedbackNotes.push("💡 **Khẩu ngữ Trung**: Gọi món ăn dùng '我要...' ngắn gọn và chuẩn xác.");
       }
     } else if (lang === 'KO') {
