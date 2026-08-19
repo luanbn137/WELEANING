@@ -896,10 +896,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         createdBy: createdBy
       });
 
-      // 2. Save to Supabase Cloud DB
-      await window.apiService.saveVocab(vocabItem);
-
-      // 3. Clear inputs & reset edit state
+      // 2. Clear inputs & reset edit state
       state.editingVocabId = null;
       document.getElementById('inp-vocab-word').value = '';
       document.getElementById('inp-vocab-phonetic').value = '';
@@ -911,11 +908,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       const btnSave = document.getElementById('btn-save-vocab');
       if (btnSave) {
         btnSave.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu vào Sổ từ & DB`;
+        btnSave.className = 'btn btn-primary';
+        btnSave.style.background = 'linear-gradient(135deg, var(--primary), var(--accent-purple))';
       }
 
-      // 4. Render updated table
+      // 3. Render updated table immediately
       await renderVocabTable();
       showToast(`✨ Đã ${existingMatch ? 'cập nhật' : 'thêm mới'} từ vựng "${word.trim()}" vào Sổ từ!`, "success");
+
+      // 4. Save to Supabase Cloud DB in background (non-blocking)
+      window.apiService.saveVocab(vocabItem).catch(e => console.warn("Supabase save error:", e));
 
       // 5. Background 3-Language Sync (for brand new words)
       if (!existingMatch && !state.editingVocabId) {

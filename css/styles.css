@@ -1045,9 +1045,11 @@ ruby rt {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  pointer-events: none;
 }
 
 .toast {
+  pointer-events: auto;
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid var(--primary-light);
   color: var(--text-main);
