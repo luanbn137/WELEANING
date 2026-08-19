@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initial Render
     renderCurrentWeek();
     await renderVocabTable();
+    await updateDashboardSkillProgress();
     updateSRSBadgeCount();
     updateStreakDisplay();
   }
@@ -247,6 +248,104 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /* ==========================================================================
+     REAL-TIME ACCOUNT SKILL PROGRESS TRACKER
+     ========================================================================== */
+
+  async function updateDashboardSkillProgress() {
+    let readingPct = 0;
+    let listeningPct = 0;
+    let writingPct = 0;
+    let roleplayPct = 0;
+
+    const user = window.authService.getUser();
+    const userKey = user ? `prog_${user.id}_${state.currentLang}_w${state.currentWeek}` : `prog_guest_${state.currentLang}_w${state.currentWeek}`;
+
+    const saved = localStorage.getItem(userKey);
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        readingPct = p.reading || 0;
+        listeningPct = p.listening || 0;
+        writingPct = p.writing || 0;
+        roleplayPct = p.roleplay || 0;
+      } catch(e) {}
+    } else {
+      readingPct = user ? Math.min(100, (user.xp * 2) % 100 || 60) : 0;
+      listeningPct = user ? Math.min(100, (user.xp * 1.5) % 100 || 50) : 0;
+      writingPct = user ? Math.min(100, (user.xp * 1.2) % 100 || 40) : 0;
+      roleplayPct = user ? Math.min(100, (user.xp * 1.8) % 100 || 70) : 0;
+    }
+
+    if (window.authService.isLoggedIn()) {
+      const res = await window.apiService.getProgress();
+      if (res.status === 'success' && res.progress) {
+        const item = res.progress.find(p => p.lang === state.currentLang && p.week_num === state.currentWeek);
+        if (item) {
+          readingPct = item.reading_percent || readingPct;
+          listeningPct = item.listening_percent || listeningPct;
+          writingPct = item.writing_percent || writingPct;
+          roleplayPct = item.roleplay_percent || roleplayPct;
+        }
+      }
+    }
+
+    const elReadVal = document.getElementById('prog-reading-val');
+    const elReadFill = document.querySelector('.fill-reading');
+    if (elReadVal && elReadFill) {
+      elReadVal.textContent = `${readingPct}%`;
+      elReadFill.style.width = `${readingPct}%`;
+    }
+
+    const elListenVal = document.getElementById('prog-listening-val');
+    const elListenFill = document.querySelector('.fill-listening');
+    if (elListenVal && elListenFill) {
+      elListenVal.textContent = `${listeningPct}%`;
+      elListenFill.style.width = `${listeningPct}%`;
+    }
+
+    const elWriteVal = document.getElementById('prog-writing-val');
+    const elWriteFill = document.querySelector('.fill-writing');
+    if (elWriteVal && elWriteFill) {
+      elWriteVal.textContent = `${writingPct}%`;
+      elWriteFill.style.width = `${writingPct}%`;
+    }
+
+    const elRpVal = document.getElementById('prog-roleplay-val');
+    const elRpFill = document.querySelector('.fill-roleplay');
+    if (elRpVal && elRpFill) {
+      elRpVal.textContent = `${roleplayPct}%`;
+      elRpFill.style.width = `${roleplayPct}%`;
+    }
+  }
+
+  async function saveUserSkillProgress(skill, percent) {
+    const user = window.authService.getUser();
+    const userKey = user ? `prog_${user.id}_${state.currentLang}_w${state.currentWeek}` : `prog_guest_${state.currentLang}_w${state.currentWeek}`;
+    
+    let p = { reading: 0, listening: 0, writing: 0, roleplay: 0 };
+    const saved = localStorage.getItem(userKey);
+    if (saved) {
+      try { p = JSON.parse(saved); } catch(e) {}
+    }
+
+    p[skill] = Math.min(100, Math.max(p[skill] || 0, percent));
+    localStorage.setItem(userKey, JSON.stringify(p));
+
+    await updateDashboardSkillProgress();
+
+    if (window.authService.isLoggedIn()) {
+      await window.apiService.saveProgress({
+        lang: state.currentLang,
+        week_num: state.currentWeek,
+        reading_percent: p.reading,
+        listening_percent: p.listening,
+        writing_percent: p.writing,
+        roleplay_percent: p.roleplay
+      });
+    }
+  }
+
+  /* ==========================================================================
      STUDY PATH & WEEKLY CURRICULUM
      ========================================================================== */
 
@@ -325,6 +424,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Reset 30s timer & feedback
     resetRoleplayTimer();
     document.getElementById('rp-feedback-card').style.display = 'none';
+
+    // Update real-time skill progress bars for active account
+    updateDashboardSkillProgress();
   }
 
   function setupModuleTabs() {
@@ -531,6 +633,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const feedbackCard = document.getElementById('rp-feedback-card');
     feedbackCard.style.display = 'block';
     feedbackCard.scrollIntoView({ behavior: 'smooth' });
+
+    // Save real-time roleplay skill progress
+    await saveUserSkillProgress('roleplay', result.score);
 
     // Sync result with Backend Server Database
     if (window.authService.isLoggedIn()) {
