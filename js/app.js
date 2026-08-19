@@ -904,76 +904,88 @@ document.addEventListener('DOMContentLoaded', async () => {
         await window.apiService.saveVocab(newVocab);
         showToast(`✨ Đã cập nhật từ vựng "${word}" thành công!`, "success");
       } else {
-        // 2. INSTANT LOCAL SAVE & AUTOMATIC 4-LANGUAGE SYNCHRONIZED SAVE (EN, JA, ZH, KO)
+        // 2. INSTANT LOCAL SAVE & BACKGROUND 4-LANGUAGE SYNCHRONIZED SAVE
         const syncTimestamp = Date.now();
-        const primaryVocabId = `vocab-${syncTimestamp}-${state.currentLang}`;
-
-        // Save primary item locally FIRST for 100% instant rendering
-        window.vocabRepo.add({
-          id: primaryVocabId,
+        const primaryVocabItem = {
+          id: `vocab-${syncTimestamp}-${state.currentLang}`,
           lang: state.currentLang,
-          word: word,
-          phonetic: phonetic,
-          translationVi: transVi,
-          explanationEn: expEn,
-          exampleSentence: exSentence,
-          exampleTranslation: exTrans,
+          word: word.trim(),
+          phonetic: phonetic.trim(),
+          translation_vi: transVi.trim(),
+          explanation_en: expEn.trim(),
+          example_sentence: exSentence.trim(),
+          example_translation: exTrans.trim(),
+          week_num: state.currentWeek,
+          mastery_level: 1,
+          created_by: createdBy
+        };
+
+        // Save primary item locally
+        window.vocabRepo.add({
+          id: primaryVocabItem.id,
+          lang: primaryVocabItem.lang,
+          word: primaryVocabItem.word,
+          phonetic: primaryVocabItem.phonetic,
+          translationVi: primaryVocabItem.translation_vi,
+          explanationEn: primaryVocabItem.explanation_en,
+          exampleSentence: primaryVocabItem.example_sentence,
+          exampleTranslation: primaryVocabItem.example_translation,
           weekNum: state.currentWeek,
           masteryLevel: 1,
           createdBy: createdBy
         });
 
-        // Immediately render so the user sees the word on screen with 0s delay
-        await renderVocabTable();
-        showToast(`✨ Đã thêm từ vựng "${word}" vào Sổ từ! Đang đồng bộ sang các ngôn ngữ khác...`, "success");
+        // Save primary item to Supabase Cloud DB
+        await window.apiService.saveVocab(primaryVocabItem);
 
-        // Background 4-Language Translation & Cloud Server Sync
+        // Clear input form fields immediately
+        document.getElementById('inp-vocab-word').value = '';
+        document.getElementById('inp-vocab-phonetic').value = '';
+        document.getElementById('inp-vocab-trans-vi').value = '';
+        document.getElementById('inp-vocab-exp-en').value = '';
+        document.getElementById('inp-vocab-ex-sentence').value = '';
+        document.getElementById('inp-vocab-ex-trans').value = '';
+
+        // Immediately render updated table
+        await renderVocabTable();
+        showToast(`✨ Đã thêm từ vựng "${word}" vào Sổ từ!`, "success");
+
+        // Background 3-Language Translation & Sync (skip current language to prevent duplicate)
         (async () => {
           try {
             const allLangData = await window.aiEngine.autoFillAllLangs(word);
-            const targetLangs = ['EN', 'JA', 'ZH', 'KO'];
+            const otherLangs = ['EN', 'JA', 'ZH', 'KO'].filter(l => l !== state.currentLang);
 
-            for (const targetLang of targetLangs) {
+            for (const targetLang of otherLangs) {
               const langData = allLangData[targetLang] || {};
-              let itemWord = (targetLang === state.currentLang) ? word : (langData.word || word);
-              let itemPhonetic = (targetLang === state.currentLang) ? phonetic : (langData.phonetic || '');
-              let itemTransVi = (targetLang === state.currentLang) ? transVi : (langData.translationVi || transVi);
-              let itemExpEn = (targetLang === state.currentLang) ? expEn : (langData.explanationEn || expEn);
-              let itemExSent = (targetLang === state.currentLang) ? exSentence : (langData.exampleSentence || exSentence);
-              let itemExTrans = (targetLang === state.currentLang) ? exTrans : (langData.exampleTranslation || exTrans);
-
               const itemVocab = {
                 id: `vocab-${syncTimestamp}-${targetLang}`,
                 lang: targetLang,
-                word: itemWord,
-                phonetic: itemPhonetic,
-                translation_vi: itemTransVi,
-                explanation_en: itemExpEn,
-                example_sentence: itemExSent,
-                example_translation: itemExTrans,
+                word: langData.word || word,
+                phonetic: langData.phonetic || '',
+                translation_vi: langData.translationVi || transVi,
+                explanation_en: langData.explanationEn || expEn,
+                example_sentence: langData.exampleSentence || exSentence,
+                example_translation: langData.exampleTranslation || exTrans,
                 week_num: state.currentWeek,
                 mastery_level: 1,
                 created_by: createdBy
               };
 
-              // Save locally for other languages
-              if (targetLang !== state.currentLang) {
-                window.vocabRepo.add({
-                  id: itemVocab.id,
-                  lang: targetLang,
-                  word: itemVocab.word,
-                  phonetic: itemVocab.phonetic,
-                  translationVi: itemVocab.translation_vi,
-                  explanationEn: itemVocab.explanation_en,
-                  exampleSentence: itemVocab.example_sentence,
-                  exampleTranslation: itemVocab.example_translation,
-                  weekNum: state.currentWeek,
-                  masteryLevel: 1,
-                  createdBy: createdBy
-                });
-              }
+              window.vocabRepo.add({
+                id: itemVocab.id,
+                lang: targetLang,
+                word: itemVocab.word,
+                phonetic: itemVocab.phonetic,
+                translationVi: itemVocab.translation_vi,
+                explanationEn: itemVocab.explanation_en,
+                exampleSentence: itemVocab.example_sentence,
+                exampleTranslation: itemVocab.example_translation,
+                weekNum: state.currentWeek,
+                masteryLevel: 1,
+                createdBy: createdBy
+              });
 
-              // Save to Cloud Server DB
               window.apiService.saveVocab(itemVocab).catch(e => console.warn("Background server save:", e));
             }
           } catch(err) {
@@ -1498,9 +1510,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Attach click listeners for "Thêm vào Sổ từ" buttons inside dictionary
     container.querySelectorAll('.btn-add-dict-to-vault').forEach(btn => {
       btn.addEventListener('click', async (e) => {
-        const id = e.currentTarget.getAttribute('data-id');
-        const targetLang = e.currentTarget.getAttribute('data-lang');
+        const targetBtn = e.currentTarget;
+        if (targetBtn.disabled) return;
+        targetBtn.disabled = true;
+
+        const id = targetBtn.getAttribute('data-id');
+        const targetLang = targetBtn.getAttribute('data-lang');
         const dictItem = dict.find(d => d.id === id);
+
         if (dictItem && dictItem[targetLang]) {
           const lData = dictItem[targetLang];
           const user = window.authService.getUser();
@@ -1536,100 +1553,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           await window.apiService.saveVocab(vocabItem);
           await renderVocabTable();
-          showToast(`✨ Đã thêm từ vựng "${lData.word}" vào Sổ từ vựng (${targetLang})!`, "success");
-        }
-      });
-    });
 
-    filtered.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'dict-entry-card';
-      card.style.cssText = 'background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:12px; padding:1.2rem; margin-bottom:0.5rem;';
-
-      const langsToDisplay = (langFilter === 'ALL') ? ['EN', 'JA', 'ZH', 'KO'] : [langFilter];
-      
-      let langBlocksHtml = langsToDisplay.map(l => {
-        const lData = item[l];
-        if (!lData) return '';
-        const flagMap = { 'EN': '🇬🇧', 'JA': '🇯🇵', 'ZH': '🇨🇳', 'KO': '🇰🇷' };
-        const nameMap = { 'EN': 'Tiếng Anh', 'JA': 'Tiếng Nhật', 'ZH': 'Tiếng Trung', 'KO': 'Tiếng Hàn' };
-
-        return `
-          <div style="flex:1; min-width:220px; background:rgba(0,0,0,0.25); border-radius:8px; padding:0.85rem; border:1px solid rgba(255,255,255,0.05);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-              <span style="font-weight:700; color:var(--primary-light); font-size:0.9rem;">${flagMap[l]} ${nameMap[l]}</span>
-              <button class="btn btn-primary btn-sm btn-add-dict-to-vault" data-id="${item.id}" data-lang="${l}" style="padding:0.2rem 0.6rem; font-size:0.75rem;">
-                <i class="fa-solid fa-plus"></i> Thêm vào Sổ từ
-              </button>
-            </div>
-            <div style="font-size:1.25rem; font-weight:700; color:#fff;">${lData.word}</div>
-            <div style="font-size:0.85rem; color:var(--accent-amber); font-style:italic;">${lData.phonetic || ''}</div>
-            <div style="font-size:0.9rem; color:var(--secondary); margin-top:0.3rem;"><strong>Nghĩa:</strong> ${lData.translationVi}</div>
-            <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.2rem;">${lData.explanationEn}</div>
-            <div style="font-size:0.8rem; background:rgba(255,255,255,0.04); padding:0.4rem; border-radius:6px; margin-top:0.4rem; font-style:italic;">
-              "${lData.exampleSentence}"
-              <br><span style="color:var(--text-muted); font-style:normal;">👉 ${lData.exampleTranslation}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px dashed rgba(255,255,255,0.1); padding-bottom:0.5rem;">
-          <span class="badge" style="background:var(--primary); color:#fff; font-size:0.8rem; padding:0.2rem 0.6rem; border-radius:12px;">
-            <i class="fa-solid fa-tag"></i> ${item.category}
-          </span>
-          <small style="color:var(--text-dim);">Dữ liệu 4 Ngôn ngữ chuẩn hóa</small>
-        </div>
-        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-          ${langBlocksHtml}
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
-
-    // Attach click listeners for "Thêm vào Sổ từ" buttons inside dictionary
-    container.querySelectorAll('.btn-add-dict-to-vault').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const id = e.currentTarget.getAttribute('data-id');
-        const targetLang = e.currentTarget.getAttribute('data-lang');
-        const dictItem = dict.find(d => d.id === id);
-        if (dictItem && dictItem[targetLang]) {
-          const lData = dictItem[targetLang];
-          const user = window.authService.getUser();
-          const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
-
-          const vocabItem = {
-            id: `vocab-${Date.now()}-${targetLang}`,
-            lang: targetLang,
-            word: lData.word,
-            phonetic: lData.phonetic || '',
-            translation_vi: lData.translationVi,
-            explanation_en: lData.explanationEn,
-            example_sentence: lData.exampleSentence,
-            example_translation: lData.exampleTranslation,
-            week_num: state.currentWeek,
-            mastery_level: 1,
-            created_by: createdBy
-          };
-
-          window.vocabRepo.add({
-            id: vocabItem.id,
-            lang: targetLang,
-            word: vocabItem.word,
-            phonetic: vocabItem.phonetic,
-            translationVi: vocabItem.translation_vi,
-            explanationEn: vocabItem.explanation_en,
-            exampleSentence: vocabItem.example_sentence,
-            exampleTranslation: vocabItem.example_translation,
-            weekNum: state.currentWeek,
-            masteryLevel: 1,
-            createdBy: createdBy
-          });
-
-          await window.apiService.saveVocab(vocabItem);
-          await renderVocabTable();
+          targetBtn.innerHTML = `<i class="fa-solid fa-check"></i> Đã thêm`;
+          targetBtn.style.background = 'var(--secondary)';
           showToast(`✨ Đã thêm từ vựng "${lData.word}" vào Sổ từ vựng (${targetLang})!`, "success");
         }
       });
