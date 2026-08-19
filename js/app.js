@@ -1323,15 +1323,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `;
 
-      // Live Cloud API Lookup
-      window.aiEngine.autoFillAllLangs(query).then(allLangsData => {
+      // Live Cloud API Lookup with Vietnamese Auto-Translation Support
+      (async () => {
+        let searchTerm = query;
+        const isVietnamese = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(query);
+        
+        if (isVietnamese) {
+          try {
+            const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=vi|en`);
+            if (transRes.ok) {
+              const transData = await transRes.json();
+              if (transData && transData.responseData && transData.responseData.translatedText) {
+                searchTerm = transData.responseData.translatedText;
+              }
+            }
+          } catch(e) {}
+        }
+
+        const allLangsData = await window.aiEngine.autoFillAllLangs(searchTerm);
         const loadingElem = document.getElementById('dict-cloud-loading');
         if (loadingElem) loadingElem.remove();
 
         const cloudItem = {
           id: `dict-cloud-${Date.now()}`,
-          keywords: [query],
-          category: "🌐 Tra cứu Cloud API Quốc tế",
+          keywords: [query, searchTerm],
+          category: `🌐 Tra cứu Từ điển Trực tuyến (${query})`,
           ...allLangsData
         };
 
