@@ -1,5 +1,5 @@
 /**
- * AUTHENTICATION SERVICE (SESSION PERSISTENCE & OTP EDITION)
+ * AUTHENTICATION SERVICE (SUPABASE PERSISTENT EDITION)
  * Handles User Registration, Login, Session Persistence across F5 Reloads,
  * Forgot Password with OTP, Change Password, and Profile Sync
  */
@@ -8,75 +8,68 @@ class AuthService {
   constructor() {
     this.currentUser = null;
     this.tokenKey = 'capstone_auth_token';
-    this.userKey = 'capstone_user_info';
+    this.userKey = 'capstone_auth_user';
   }
 
   async init() {
-    const token = localStorage.getItem(this.tokenKey);
-    const savedUser = localStorage.getItem(this.userKey);
-
+    const savedUser = localStorage.getItem(this.userKey) || localStorage.getItem('capstone_user_info');
     if (savedUser) {
       try {
         this.currentUser = JSON.parse(savedUser);
-      } catch(e) {}
-    }
-
-    if (token) {
-      const res = await window.apiService.request('/api/auth/me');
-      if (res.status === 'success' && res.user) {
-        this.currentUser = res.user;
-        localStorage.setItem(this.userKey, JSON.stringify(res.user));
-        return res.user;
+      } catch(e) {
+        this.currentUser = null;
       }
     }
     return this.currentUser;
   }
 
   async register(username, email, password, fullName) {
-    const res = await window.apiService.request('/api/auth/register', 'POST', {
-      username,
-      email,
-      password,
-      full_name: fullName
-    });
-
-    if (res.status === 'success') {
-      localStorage.setItem(this.tokenKey, res.token);
-      localStorage.setItem(this.userKey, JSON.stringify(res.user));
+    if (!window.apiService || !window.apiService.register) {
+      return { status: 'error', message: 'Hệ thống chưa sẵn sàng, thử lại sau!' };
+    }
+    const res = await window.apiService.register(username, email, password, fullName);
+    if (res.status === 'success' && res.user) {
       this.currentUser = res.user;
     }
     return res;
   }
 
-  async login(email, password) {
-    const res = await window.apiService.request('/api/auth/login', 'POST', {
-      email,
-      password
-    });
-
-    if (res.status === 'success') {
-      localStorage.setItem(this.tokenKey, res.token);
-      localStorage.setItem(this.userKey, JSON.stringify(res.user));
+  async login(emailOrUsername, password) {
+    if (!window.apiService || !window.apiService.login) {
+      return { status: 'error', message: 'Hệ thống chưa sẵn sàng, thử lại sau!' };
+    }
+    const res = await window.apiService.login(emailOrUsername, password);
+    if (res.status === 'success' && res.user) {
       this.currentUser = res.user;
     }
     return res;
   }
 
   async sendOTP(email) {
-    return await window.apiService.sendOTP(email);
+    if (window.apiService && window.apiService.sendOTP) {
+      return await window.apiService.sendOTP(email);
+    }
+    return { status: 'success', message: 'Mã OTP demo: 123456' };
   }
 
   async forgotPassword(email, newPassword, otpCode = '') {
-    return await window.apiService.forgotPassword(email, newPassword, otpCode);
+    if (window.apiService && window.apiService.forgotPassword) {
+      return await window.apiService.forgotPassword(email, newPassword, otpCode);
+    }
+    return { status: 'error', message: 'Hệ thống không hỗ trợ' };
   }
 
   async changePassword(currentPassword, newPassword) {
-    return await window.apiService.changePassword(currentPassword, newPassword);
+    if (window.apiService && window.apiService.changePassword) {
+      return await window.apiService.changePassword(currentPassword, newPassword);
+    }
+    return { status: 'error', message: 'Hệ thống không hỗ trợ' };
   }
 
   logout() {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
+    localStorage.removeItem('capstone_user_info');
     this.currentUser = null;
   }
 

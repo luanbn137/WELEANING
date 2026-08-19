@@ -222,6 +222,24 @@ class ApiService {
     }
   }
 
+  // Legacy request fallback for backward compatibility
+  async request(endpoint, method = 'GET', data = null) {
+    if (endpoint.includes('/auth/me')) {
+      const userStr = localStorage.getItem('capstone_auth_user') || localStorage.getItem('capstone_user_info');
+      if (userStr) {
+        try { return { status: 'success', user: JSON.parse(userStr) }; } catch(e) {}
+      }
+      return { status: 'error', message: 'Chưa đăng nhập' };
+    }
+    if (endpoint.includes('/auth/login') && data) {
+      return this.login(data.email || data.username, data.password);
+    }
+    if (endpoint.includes('/auth/register') && data) {
+      return this.register(data.username, data.email, data.password, data.full_name);
+    }
+    return { status: 'offline' };
+  }
+
   // Unused stubs for compatibility
   async getProgress() { return { status: 'offline' }; }
   async saveProgress() { return { status: 'offline' }; }

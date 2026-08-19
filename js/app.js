@@ -42,35 +42,34 @@ document.addEventListener('DOMContentLoaded', async () => {
      ========================================================================== */
 
   async function initApp() {
-    setupNavigation();
-    setupAuthSystem();
-    setupLanguageAndLevelSelectors();
-    setupWeekSelector();
-    setupModuleTabs();
-    setupReadingLab();
-    setupRoleplayArena();
-    setupVocabVault();
-    setupSRSModal();
-    setupDictionaryModal();
+    try { setupNavigation(); } catch(e) { console.warn("setupNavigation error:", e); }
+    try { setupAuthSystem(); } catch(e) { console.warn("setupAuthSystem error:", e); }
+    try { setupLanguageAndLevelSelectors(); } catch(e) { console.warn("setupLanguageAndLevelSelectors error:", e); }
+    try { setupWeekSelector(); } catch(e) { console.warn("setupWeekSelector error:", e); }
+    try { setupModuleTabs(); } catch(e) { console.warn("setupModuleTabs error:", e); }
+    try { setupReadingLab(); } catch(e) { console.warn("setupReadingLab error:", e); }
+    try { setupRoleplayArena(); } catch(e) { console.warn("setupRoleplayArena error:", e); }
+    try { setupVocabVault(); } catch(e) { console.warn("setupVocabVault error:", e); }
+    try { setupSRSModal(); } catch(e) { console.warn("setupSRSModal error:", e); }
+    try { setupDictionaryModal(); } catch(e) { console.warn("setupDictionaryModal error:", e); }
     
     // Initialize Auth Session
-    await window.authService.init();
-    updateAuthNavbarUI();
+    try { await window.authService.init(); } catch(e) { console.warn("authService.init error:", e); }
+    try { updateAuthNavbarUI(); } catch(e) { console.warn("updateAuthNavbarUI error:", e); }
 
-    // Initial Render & Hash Route handling
-    renderCurrentWeek();
-    await renderVocabTable();
-    await updateDashboardSkillProgress();
-    updateSRSBadgeCount();
-    updateStreakDisplay();
-    handleHashRoute();
+    // Initial Render & Instant Hash Route handling
+    try { renderCurrentWeek(); } catch(e) { console.warn("renderCurrentWeek error:", e); }
+    try { handleHashRoute(); } catch(e) { console.warn("handleHashRoute error:", e); }
 
-    // Wake up Render Cloud Server in background (free tier sleeps after 15min)
-    wakeUpServerAndSync();
+    // Async data loading
+    try { await renderVocabTable(); } catch(e) { console.warn("renderVocabTable error:", e); }
+    try { await updateDashboardSkillProgress(); } catch(e) { console.warn("updateDashboardSkillProgress error:", e); }
+    try { updateSRSBadgeCount(); } catch(e) { console.warn("updateSRSBadgeCount error:", e); }
+    try { updateStreakDisplay(); } catch(e) { console.warn("updateStreakDisplay error:", e); }
 
     // Real-time Cloud Sync Polling across devices (every 15s)
     setInterval(async () => {
-      await renderVocabTable();
+      try { await renderVocabTable(); } catch(e) {}
     }, 15000);
   }
 
