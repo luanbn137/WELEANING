@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupRoleplayArena();
     setupVocabVault();
     setupSRSModal();
+    setupDictionaryModal();
     
     // Initialize Auth Session
     await window.authService.init();
@@ -1254,6 +1255,169 @@ document.addEventListener('DOMContentLoaded', async () => {
         tbody.appendChild(tr);
       });
     }
+  }
+
+  /* ==========================================================================
+     COMPREHENSIVE 4-LANGUAGE DICTIONARY MODAL HANDLERS
+     ========================================================================== */
+
+  function setupDictionaryModal() {
+    const modal = document.getElementById('modal-dictionary');
+    const btnOpen = document.getElementById('btn-open-dict-modal');
+    const btnClose = document.getElementById('btn-close-dict-modal');
+    const inpSearch = document.getElementById('inp-dict-search');
+    const selectLang = document.getElementById('select-dict-lang');
+
+    if (btnOpen) {
+      btnOpen.addEventListener('click', () => {
+        modal.classList.add('active');
+        renderDictionaryResults();
+      });
+    }
+
+    if (btnClose) {
+      btnClose.addEventListener('click', () => {
+        modal.classList.remove('active');
+      });
+    }
+
+    if (inpSearch) {
+      inpSearch.addEventListener('input', () => renderDictionaryResults());
+    }
+
+    if (selectLang) {
+      selectLang.addEventListener('change', () => renderDictionaryResults());
+    }
+  }
+
+  function renderDictionaryResults() {
+    const container = document.getElementById('dict-results-list');
+    if (!container) return;
+
+    const query = (document.getElementById('inp-dict-search')?.value || '').trim().toLowerCase();
+    const langFilter = document.getElementById('select-dict-lang')?.value || 'ALL';
+    const dict = window.COMPREHENSIVE_DICTIONARY || [];
+
+    const filtered = dict.filter(item => {
+      if (query) {
+        const matchesKeyword = item.keywords.some(k => k.toLowerCase().includes(query));
+        const matchesCategory = (item.category || '').toLowerCase().includes(query);
+        const matchesEnWord = (item.EN?.word || '').toLowerCase().includes(query);
+        const matchesJaWord = (item.JA?.word || '').toLowerCase().includes(query);
+        const matchesZhWord = (item.ZH?.word || '').toLowerCase().includes(query);
+        const matchesKoWord = (item.KO?.word || '').toLowerCase().includes(query);
+        if (!matchesKeyword && !matchesCategory && !matchesEnWord && !matchesJaWord && !matchesZhWord && !matchesKoWord) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    container.innerHTML = '';
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:2rem; color:var(--text-dim);">
+          <i class="fa-solid fa-magnifying-glass" style="font-size:2rem; margin-bottom:0.5rem; display:block;"></i>
+          Không tìm thấy từ vựng khớp với "${query}". Hãy thử gõ từ khác!
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'dict-entry-card';
+      card.style.cssText = 'background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:12px; padding:1.2rem; margin-bottom:0.5rem;';
+
+      const langsToDisplay = (langFilter === 'ALL') ? ['EN', 'JA', 'ZH', 'KO'] : [langFilter];
+      
+      let langBlocksHtml = langsToDisplay.map(l => {
+        const lData = item[l];
+        if (!lData) return '';
+        const flagMap = { 'EN': '🇬🇧', 'JA': '🇯🇵', 'ZH': '🇨🇳', 'KO': '🇰🇷' };
+        const nameMap = { 'EN': 'Tiếng Anh', 'JA': 'Tiếng Nhật', 'ZH': 'Tiếng Trung', 'KO': 'Tiếng Hàn' };
+
+        return `
+          <div style="flex:1; min-width:220px; background:rgba(0,0,0,0.25); border-radius:8px; padding:0.85rem; border:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+              <span style="font-weight:700; color:var(--primary-light); font-size:0.9rem;">${flagMap[l]} ${nameMap[l]}</span>
+              <button class="btn btn-primary btn-sm btn-add-dict-to-vault" data-id="${item.id}" data-lang="${l}" style="padding:0.2rem 0.6rem; font-size:0.75rem;">
+                <i class="fa-solid fa-plus"></i> Thêm vào Sổ từ
+              </button>
+            </div>
+            <div style="font-size:1.25rem; font-weight:700; color:#fff;">${lData.word}</div>
+            <div style="font-size:0.85rem; color:var(--accent-amber); font-style:italic;">${lData.phonetic || ''}</div>
+            <div style="font-size:0.9rem; color:var(--secondary); margin-top:0.3rem;"><strong>Nghĩa:</strong> ${lData.translationVi}</div>
+            <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.2rem;">${lData.explanationEn}</div>
+            <div style="font-size:0.8rem; background:rgba(255,255,255,0.04); padding:0.4rem; border-radius:6px; margin-top:0.4rem; font-style:italic;">
+              "${lData.exampleSentence}"
+              <br><span style="color:var(--text-muted); font-style:normal;">👉 ${lData.exampleTranslation}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px dashed rgba(255,255,255,0.1); padding-bottom:0.5rem;">
+          <span class="badge" style="background:var(--primary); color:#fff; font-size:0.8rem; padding:0.2rem 0.6rem; border-radius:12px;">
+            <i class="fa-solid fa-tag"></i> ${item.category}
+          </span>
+          <small style="color:var(--text-dim);">Dữ liệu 4 Ngôn ngữ chuẩn hóa</small>
+        </div>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          ${langBlocksHtml}
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+
+    // Attach click listeners for "Thêm vào Sổ từ" buttons inside dictionary
+    container.querySelectorAll('.btn-add-dict-to-vault').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        const targetLang = e.currentTarget.getAttribute('data-lang');
+        const dictItem = dict.find(d => d.id === id);
+        if (dictItem && dictItem[targetLang]) {
+          const lData = dictItem[targetLang];
+          const user = window.authService.getUser();
+          const createdBy = (user && user.role !== 'admin') ? (user.full_name || user.username) : (!user ? 'Học viên' : null);
+
+          const vocabItem = {
+            id: `vocab-${Date.now()}-${targetLang}`,
+            lang: targetLang,
+            word: lData.word,
+            phonetic: lData.phonetic || '',
+            translation_vi: lData.translationVi,
+            explanation_en: lData.explanationEn,
+            example_sentence: lData.exampleSentence,
+            example_translation: lData.exampleTranslation,
+            week_num: state.currentWeek,
+            mastery_level: 1,
+            created_by: createdBy
+          };
+
+          window.vocabRepo.add({
+            id: vocabItem.id,
+            lang: targetLang,
+            word: vocabItem.word,
+            phonetic: vocabItem.phonetic,
+            translationVi: vocabItem.translation_vi,
+            explanationEn: vocabItem.explanation_en,
+            exampleSentence: vocabItem.example_sentence,
+            exampleTranslation: vocabItem.example_translation,
+            weekNum: state.currentWeek,
+            masteryLevel: 1,
+            createdBy: createdBy
+          });
+
+          await window.apiService.saveVocab(vocabItem);
+          await renderVocabTable();
+          showToast(`✨ Đã thêm từ vựng "${lData.word}" vào Sổ từ vựng (${targetLang})!`, "success");
+        }
+      });
+    });
   }
 
   /* ==========================================================================
