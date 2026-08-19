@@ -1363,7 +1363,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="badge" style="background:var(--primary); color:#fff; font-size:0.8rem; padding:0.2rem 0.6rem; border-radius:12px;">
             <i class="fa-solid fa-tag"></i> ${item.category}
           </span>
-          <small style="color:var(--secondary); font-weight:600;"><i class="fa-solid fa-bolt"></i> Tra cứu Siêu tốc 0s</small>
         </div>
         <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
           ${langBlocksHtml}
