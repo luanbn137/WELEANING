@@ -6,8 +6,37 @@
 
 class AIEngineService {
   constructor() {
-    // Extensive Knowledge Base mapping concepts across EN, JA, ZH, KO
+    // English-Vietnamese Smart Dictionary Fallback Engine
+    this.enViDict = {
+      "birth": { vi: "Sự sinh ra, ngày sinh, sự ra đời", def: "The emergence of a baby or other young from its mother's body.", ex: "Her birth brought immense joy to the whole family.", exVi: "Sự ra đời của cô bé đã mang lại niềm hạnh phúc to lớn cho cả gia đình." },
+      "life": { vi: "Cuộc sống, đời sống", def: "The condition that distinguishes animals and plants from inorganic matter.", ex: "Life is full of wonderful surprises.", exVi: "Cuộc sống tràn ngập những bất ngờ tuyệt vời." },
+      "love": { vi: "Tình yêu, sự yêu thương", def: "An intense feeling of deep affection.", ex: "Love and kindness make the world a better place.", exVi: "Tình yêu và sự tử tế làm cho thế giới trở nên tốt đẹp hơn." },
+      "hope": { vi: "Hy vọng, niềm tin", def: "A feeling of expectation and desire for a certain thing to happen.", ex: "Never lose hope even in difficult times.", exVi: "Đừng bao giờ mất hy vọng ngay cả trong những lúc khó khăn." },
+      "dream": { vi: "Giấc mơ, ước mơ", def: "A cherished aspiration, ambition, or ideal.", ex: "Work hard to achieve your biggest dream.", exVi: "Hãy nỗ lực làm việc để đạt được ước mơ lớn nhất của bạn." },
+      "happiness": { vi: "Sự hạnh phúc, niềm vui", def: "The state of being happy and satisfied.", ex: "True happiness comes from peace of mind.", exVi: "Hạnh phúc thực sự đến từ sự bình yên trong tâm hồn." },
+      "freedom": { vi: "Sự tự do, quyền tự do", def: "The power or right to act, speak, or think as one wants.", ex: "Freedom of speech is a fundamental human right.", exVi: "Tự do ngôn luận là một quyền cơ bản của con người." },
+      "peace": { vi: "Hòa bình, sự thanh thản", def: "Freedom from disturbance; tranquility.", ex: "Everyone wishes for world peace.", exVi: "Mọi người đều mong ước hòa bình thế giới." },
+      "success": { vi: "Sự thành công", def: "The accomplishment of an aim or purpose.", ex: "Hard work is the key to ultimate success.", exVi: "Làm việc chăm chỉ là chìa khóa dẫn đến thành công cuối cùng." },
+      "opportunity": { vi: "Cơ hội, thời cơ", def: "A set of circumstances that makes it possible to do something.", ex: "Grab every opportunity to improve yourself.", exVi: "Nắm bắt mọi cơ hội để hoàn thiện bản thân." },
+      "challenge": { vi: "Thách thức, thử thách", def: "A call to take part in a contest or test ones ability.", ex: "Overcoming a challenge builds strong character.", exVi: "Vượt qua thử thách giúp xây dựng bản lĩnh vững vàng." },
+      "education": { vi: "Nền giáo dục, sự học tập", def: "The process of receiving or giving systematic instruction.", ex: "Education opens doors to a brighter future.", exVi: "Giáo dục mở ra những cánh cửa dẫn đến tương lai tươi sáng." },
+      "environment": { vi: "Môi trường sống", def: "The surroundings or conditions in which a person lives.", ex: "Protecting the environment is our responsibility.", exVi: "Bảo vệ môi trường là trách nhiệm của chúng ta." },
+      "technology": { vi: "Công nghệ, kỹ thuật", def: "The application of scientific knowledge for practical purposes.", ex: "Technology changes the way we communicate.", exVi: "Công nghệ thay đổi cách chúng ta giao tiếp." },
+      "culture": { vi: "Văn hóa, văn minh", def: "The arts and other manifestations of human intellectual achievement.", ex: "Learning a language helps you understand its culture.", exVi: "Học một ngôn ngữ giúp bạn hiểu được văn hóa của ngôn ngữ đó." },
+      "journey": { vi: "Hành trình, chuyến đi", def: "An act of traveling from one place to another.", ex: "Life is a long journey of learning.", exVi: "Cuộc sống là một hành trình dài của sự học hỏi." },
+      "memory": { vi: "Ký ức, kỷ niệm, trí nhớ", def: "The faculty by which the mind stores and remembers information.", ex: "We created unforgettable memories during the trip.", exVi: "Chúng tôi đã tạo ra những kỷ niệm không thể nào quên trong chuyến đi." },
+      "future": { vi: "Tương lai", def: "The time or a period of time following the moment of speaking.", ex: "Plan wisely for a secure future.", exVi: "Hãy lập kế hoạch khôn ngoan cho một tương lai vững chắc." }
+    };
+
+    // Extensive Concept Knowledge Base across EN, JA, ZH, KO
     this.conceptMap = {
+      "birth": {
+        "EN": { word: "Birth", phonetic: "/bɜːθ/", translationVi: "Sự sinh ra, ngày sinh, sự ra đời", explanationEn: "The emergence of a baby or other young from its mother's body.", exampleSentence: "Her birth brought immense joy to the whole family.", exampleTranslation: "Sự ra đời của cô bé đã mang lại niềm hạnh phúc to lớn cho cả gia đình." },
+        "JA": { word: "<ruby>誕生<rt>たんじょう</rt></ruby>", phonetic: "Tanjō", translationVi: "Sự ra đời, sinh nhật", explanationEn: "Birth or emergence in Japanese.", exampleSentence: "<ruby>赤<rt>あか</rt></ruby>ちゃんの<ruby>誕生<rt>たんじょう</rt></ruby>を<ruby>祝<rt>いわ</rt></ruby>います。", exampleTranslation: "Chúc mừng sự ra đời của em bé." },
+        "ZH": { word: "<ruby>出生<rt>chū shēng</rt></ruby>", phonetic: "chū shēng", translationVi: "Sự sinh ra, chào đời", explanationEn: "Birth in Chinese.", exampleSentence: "恭喜新生命的出生。", exampleTranslation: "Chúc mừng sự chào đời của sinh linh mới." },
+        "KO": { word: "탄생", phonetic: "tan-saeng", translationVi: "Sự ra đời, sinh ra", explanationEn: "Birth in Korean.", exampleSentence: "아기의 탄생을 축하합니다.", exampleTranslation: "Chúc mừng sự ra đời của em bé." }
+      },
+
       // 1. Sách / Book
       "sách": {
         "EN": { word: "Book", phonetic: "/bʊk/", translationVi: "Cuốn sách", explanationEn: "A written or printed work consisting of pages bound together.", exampleSentence: "I read an inspiring book yesterday.", exampleTranslation: "Tôi đã đọc một cuốn sách đầy cảm hứng ngày hôm qua." },
@@ -20,12 +49,6 @@ class AIEngineService {
         "JA": { word: "<ruby>本<rt>ほん</rt></ruby>", phonetic: "Hon", translationVi: "Cuốn sách", explanationEn: "Book in Japanese.", exampleSentence: "<ruby>面白<rt>おもしろ</rt></ruby>い<ruby>本<rt>ほん</rt></ruby>をみつけました。", exampleTranslation: "Tôi đã tìm thấy một cuốn sách thú vị." },
         "ZH": { word: "<ruby>书本<rt>shū běn</rt></ruby>", phonetic: "shū běn", translationVi: "Sách", explanationEn: "Book in Chinese.", exampleSentence: "这本字典非常实用。", exampleTranslation: "Cuốn từ điển này rất thực tế." },
         "KO": { word: "책", phonetic: "chaek", translationVi: "Cuốn sách", explanationEn: "Book in Korean.", exampleSentence: "책을 읽는 것은 재미있어요.", exampleTranslation: "Đọc sách rất là thú vị." }
-      },
-      "책": {
-        "EN": { word: "Book", phonetic: "/bʊk/", translationVi: "Cuốn sách", explanationEn: "Korean word '책' translated to English.", exampleSentence: "She bought a new book.", exampleTranslation: "Cô ấy đã mua một cuốn sách mới." },
-        "JA": { word: "<ruby>本<rt>ほん</rt></ruby>", phonetic: "Hon", translationVi: "Cuốn sách", explanationEn: "Korean word '책' in Japanese.", exampleSentence: "<ruby>本<rt>ほん</rt></ruby>を<ruby>読<rt>よ</rt></ruby>むのが<ruby>好<rt>す</rt></ruby>きです。", exampleTranslation: "Tôi thích đọc sách." },
-        "ZH": { word: "<ruby>书<rt>shū</rt></ruby>", phonetic: "shū", translationVi: "Sách", explanationEn: "Korean word '책' in Chinese.", exampleSentence: "这是一部名著。", exampleTranslation: "Đây là một tác phẩm danh tiếng." },
-        "KO": { word: "책", phonetic: "chaek", translationVi: "Cuốn sách", explanationEn: "A book for reading.", exampleSentence: "새 책을 샀습니다.", exampleTranslation: "Tôi đã mua một cuốn sách mới." }
       },
 
       // 2. Bút chì / Pencil
@@ -54,58 +77,6 @@ class AIEngineService {
         "JA": { word: "パソコン", phonetic: "Pasokon", translationVi: "Máy tính", explanationEn: "Personal computer.", exampleSentence: "パソコンで仕事をする。", exampleTranslation: "Làm việc bằng máy tính." },
         "ZH": { word: "<ruby>电脑<rt>diàn nǎo</rt></ruby>", phonetic: "diàn nǎo", translationVi: "Máy tính", explanationEn: "Computer in Chinese.", exampleSentence: "这台电脑速度很快。", exampleTranslation: "Chiếc máy tính này tốc độ rất nhanh." },
         "KO": { word: "컴퓨터", phonetic: "keom-pyu-teo", translationVi: "Máy tính", explanationEn: "Computer in Korean.", exampleSentence: "컴퓨터가 고장 났어요.", exampleTranslation: "Máy tính đã bị hỏng rồi." }
-      },
-
-      // 4. Cà phê / Coffee
-      "cà phê": {
-        "EN": { word: "Coffee", phonetic: "/ˈkɒf.i/", translationVi: "Cà phê", explanationEn: "A hot drink made from roasted coffee beans.", exampleSentence: "Drinking a cup of coffee wakes me up.", exampleTranslation: "Uống một tách cà phê giúp tôi tỉnh táo." },
-        "JA": { word: "コーヒー", phonetic: "Kōhī", translationVi: "Cà phê", explanationEn: "Coffee beverage in Japanese.", exampleSentence: "<ruby>朝<rt>asa</rt></ruby>コーヒーを<ruby>飲<rt>no</rt></ruby>みます。", exampleTranslation: "Tôi uống cà phê vào buổi sáng." },
-        "ZH": { word: "<ruby>咖啡<rt>kā fēi</rt></ruby>", phonetic: "kā fēi", translationVi: "Cà phê", explanationEn: "Coffee drink in Chinese.", exampleSentence: "请给我一杯热咖啡。", exampleTranslation: "Xin cho tôi một tách cà phê nóng." },
-        "KO": { word: "커피", phonetic: "keo-phi", translationVi: "Cà phê", explanationEn: "Coffee drink in Korean.", exampleSentence: "아침에 따뜻한 커피를 마셔요.", exampleTranslation: "Uống cà phê nóng vào buổi sáng." }
-      },
-
-      // 5. Bạn bè / Friend
-      "bạn": {
-        "EN": { word: "Friend", phonetic: "/frend/", translationVi: "Người bạn", explanationEn: "A person with whom one has a bond of mutual affection.", exampleSentence: "A true friend supports you through hardship.", exampleTranslation: "Một người bạn thực sự sẽ hỗ trợ bạn qua khó khăn." },
-        "JA": { word: "<ruby>友達<rt>ともだち</rt></ruby>", phonetic: "Tomodachi", translationVi: "Người bạn", explanationEn: "Friend in Japanese.", exampleSentence: "<ruby>友達<rt>ともだち</rt></ruby>とカフェで<ruby>話<rt>はな</rt></ruby>します。", exampleTranslation: "Trò chuyện với bạn bè ở quán cà phê." },
-        "ZH": { word: "<ruby>朋友<rt>péng you</rt></ruby>", phonetic: "péng you", translationVi: "Người bạn", explanationEn: "Friend in Chinese.", exampleSentence: "我和好朋友一起去旅行。", exampleTranslation: "Tôi đi du lịch cùng người bạn thân." },
-        "KO": { word: "친구", phonetic: "chin-gu", translationVi: "Người bạn", explanationEn: "Friend in Korean.", exampleSentence: "주말에 친구를 만나서 놀았어요.", exampleTranslation: "Cuối tuần tôi đã gặp bạn và đi chơi." }
-      },
-
-      // 6. Học tập / Study
-      "học": {
-        "EN": { word: "Study", phonetic: "/ˈstʌd.i/", translationVi: "Học tập, nghiên cứu", explanationEn: "Devote time and attention to acquiring knowledge.", exampleSentence: "I study foreign languages every evening.", exampleTranslation: "Tôi học ngoại ngữ mỗi buổi tối." },
-        "JA": { word: "<ruby>勉強<rt>べんきょう</rt></ruby>", phonetic: "Benkyō", translationVi: "Học tập", explanationEn: "Study in Japanese.", exampleSentence: "<ruby>毎日<rt>まいにち</rt></ruby><ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>します。", exampleTranslation: "Mỗi ngày tôi đều học tiếng Nhật." },
-        "ZH": { word: "<ruby>学习<rt>xué xí</rt></ruby>", phonetic: "xué xí", translationVi: "Học tập", explanationEn: "Study in Chinese.", exampleSentence: "努力学习，天天向上。", exampleTranslation: "Nỗ lực học tập, mỗi ngày tiến lên." },
-        "KO": { word: "공부", phonetic: "gong-bu", translationVi: "Học tập", explanationEn: "Study in Korean.", exampleSentence: "매일 열심히 한국어를 공부해요.", exampleTranslation: "Mỗi ngày tôi đều chăm chỉ học tiếng Hàn." }
-      },
-
-      // 7. Gia đình / Family
-      "gia đình": {
-        "EN": { word: "Family", phonetic: "/ˈfæm.əl.i/", translationVi: "Gia đình", explanationEn: "A group of one or more parents and their children living together.", exampleSentence: "Family is the most important thing in life.", exampleTranslation: "Gia đình là điều quan trọng nhất trong cuộc sống." },
-        "JA": { word: "<ruby>家族<rt>かぞく</rt></ruby>", phonetic: "Kazoku", translationVi: "Gia đình", explanationEn: "Family in Japanese.", exampleSentence: "<ruby>私<rt>わたし</rt></ruby>の<ruby>家族<rt>かぞく</rt></ruby>は４<ruby>人<rt>にん</rt></ruby>です。", exampleTranslation: "Gia đình tôi có 4 người." },
-        "ZH": { word: "<ruby>家庭<rt>jiā tíng</rt></ruby>", phonetic: "jiā tíng", translationVi: "Gia đình / Mái ấm", explanationEn: "Family in Chinese.", exampleSentence: "这是一个幸福的家庭。", exampleTranslation: "Đây là một gia đình hạnh phúc." },
-        "KO": { word: "가족", phonetic: "ga-jok", translationVi: "Gia đình", explanationEn: "Family in Korean.", exampleSentence: "가족들과 함께 즐거운 시간을 보냈어요.", exampleTranslation: "Tôi đã trải qua thời gian vui vẻ bên gia đình." }
-      },
-      "family": {
-        "EN": { word: "Family", phonetic: "/ˈfæm.əl.i/", translationVi: "Gia đình", explanationEn: "Group of individuals living together.", exampleSentence: "I love spending weekends with my family.", exampleTranslation: "Tôi thích dành cuối tuần bên gia đình." },
-        "JA": { word: "<ruby>家族<rt>かぞく</rt></ruby>", phonetic: "Kazoku", translationVi: "Gia đình", explanationEn: "Family in Japanese.", exampleSentence: "<ruby>家族<rt>かぞく</rt></ruby>で<ruby>旅行<rt>りょこう</rt></ruby>に<ruby>行<rt>い</rt></ruby>きました。", exampleTranslation: "Tôi đã đi du lịch cùng gia đình." },
-        "ZH": { word: "<ruby>家人<rt>jiā rén</rt></ruby>", phonetic: "jiā rén", translationVi: "Người thân gia đình", explanationEn: "Family members in Chinese.", exampleSentence: "我和家人住在一起。", exampleTranslation: "Tôi sống cùng với gia đình." },
-        "KO": { word: "가족", phonetic: "ga-jok", translationVi: "Gia đình", explanationEn: "Family in Korean.", exampleSentence: "가족은 소중해요.", exampleTranslation: "Gia đình là quý giá nhất." }
-      },
-
-      // 8. Trường học / School
-      "trường": {
-        "EN": { word: "School", phonetic: "/skuːl/", translationVi: "Trường học", explanationEn: "An institution for educating children or students.", exampleSentence: "Students go to school to learn.", exampleTranslation: "Học sinh đến trường để học tập." },
-        "JA": { word: "<ruby>学校<rt>がっこう</rt></ruby>", phonetic: "Gakkō", translationVi: "Trường học", explanationEn: "School in Japanese.", exampleSentence: "<ruby>朝<rt>あさ</rt></ruby>８<ruby>時<rt>じ</rt></ruby>に<ruby>学校<rt>がっこう</rt></ruby>へ<ruby>行<rt>い</rt></ruby>きます。", exampleTranslation: "Tôi đến trường lúc 8 giờ sáng." },
-        "ZH": { word: "<ruby>学校<rt>xué xiào</rt></ruby>", phonetic: "xué xiào", translationVi: "Trường học", explanationEn: "School in Chinese.", exampleSentence: "我们的学校非常美丽。", exampleTranslation: "Trường học của chúng tôi rất đẹp." },
-        "KO": { word: "학교", phonetic: "hak-gyo", translationVi: "Trường học", explanationEn: "School in Korean.", exampleSentence: "아침마다 학교에 가요.", exampleTranslation: "Mỗi buổi sáng tôi đều đến trường." }
-      },
-      "school": {
-        "EN": { word: "School", phonetic: "/skuːl/", translationVi: "Trường học", explanationEn: "Educational institution.", exampleSentence: "Our school has a large library.", exampleTranslation: "Trường chúng tôi có một thư viện lớn." },
-        "JA": { word: "<ruby>学校<rt>がっこう</rt></ruby>", phonetic: "Gakkō", translationVi: "Trường học", explanationEn: "School in Japanese.", exampleSentence: "<ruby>学校<rt>がっこう</rt></ruby>の<ruby>友達<rt>ともだち</rt></ruby>と<ruby>遊<rt>あそ</rt></ruby>ぶ。", exampleTranslation: "Chơi cùng bạn ở trường." },
-        "ZH": { word: "<ruby>学校<rt>xué xiào</rt></ruby>", phonetic: "xué xiào", translationVi: "Trường học", explanationEn: "School in Chinese.", exampleSentence: "我在学校学习英语。", exampleTranslation: "Tôi học tiếng Anh ở trường." },
-        "KO": { word: "학교", phonetic: "hak-gyo", translationVi: "Trường học", explanationEn: "School in Korean.", exampleSentence: "학교에서 공부해요.", exampleTranslation: "Học tập ở trường." }
       }
     };
   }
@@ -132,7 +103,21 @@ class AIEngineService {
         }
       }
 
-      // 3. Intelligent Dynamic NLP Translator Engine
+      // 3. Smart English-Vietnamese Dictionary Fallback for English words
+      if (currentTargetLang === 'EN' && this.enViDict[cleanKey]) {
+        const item = this.enViDict[cleanKey];
+        const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
+        return {
+          word: formattedWord,
+          phonetic: `/${cleanKey}/`,
+          translationVi: item.vi,
+          explanationEn: item.def,
+          exampleSentence: item.ex,
+          exampleTranslation: item.exVi
+        };
+      }
+
+      // 4. Intelligent Dynamic NLP Translator Engine
       const formattedWord = rawWord.charAt(0).toUpperCase() + rawWord.slice(1);
 
       switch (currentTargetLang) {
