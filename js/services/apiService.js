@@ -20,11 +20,12 @@ class ApiService {
 
   async getVocab() {
     try {
-      const res = await fetch(`${this.url}/vocab_vault?select=*&order=created_at.desc`, {
+      // Fetch all vocab — client-side will filter by lang (including lang='ALL' shared items)
+      const res = await fetch(`${this.url}/vocab_vault?select=*&order=created_at.desc&limit=500`, {
         headers: this.headers
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(data.message || 'Supabase error');
       return { status: 'success', vocab: data };
     } catch (err) {
       console.warn('[Supabase] getVocab error:', err);

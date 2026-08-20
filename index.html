@@ -3,30 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vocab & Roleplay Learning System - Capstone Edition (EN / JA / ZH / KO)</title>
-  
-  <!-- Modern Typography & Icons -->
+  <meta name="description" content="WELEANING — Hệ thống học từ vựng và luyện phản xạ hội thoại 4 ngôn ngữ Anh, Nhật, Trung, Hàn với AI và SRS.">
+  <meta name="theme-color" content="#080c14">
+  <title>WELEANING — Vocab & Roleplay (EN / JA / ZH / KO)</title>
+
+  <!-- Icons & Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <!-- NAVBAR HEADER -->
-  <nav class="navbar">
-    <div class="brand-logo" id="nav-brand">
-      <div class="brand-icon">
+  <!-- ===================== NAVBAR ===================== -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <!-- Brand -->
+    <div class="brand-logo" id="nav-brand" role="button" tabindex="0" aria-label="Về trang chủ">
+      <div class="brand-icon" aria-hidden="true">
         <i class="fa-solid fa-graduation-cap"></i>
       </div>
-      <div class="brand-title">
-        Vocab <span>Arena</span>
-      </div>
+      <div class="brand-title">We<span>Learning</span></div>
     </div>
 
+    <!-- Top Controls -->
     <div class="nav-controls">
-      <!-- Language Flag Switcher -->
-      <div class="lang-selector">
-        <span class="lang-flag" id="current-flag">🇬🇧</span>
-        <select id="select-language" class="custom-select">
+      <!-- Language Selector -->
+      <div class="lang-selector" title="Chọn ngôn ngữ học">
+        <span class="lang-flag" id="current-flag" aria-hidden="true">🇬🇧</span>
+        <select id="select-language" class="custom-select" aria-label="Chọn ngôn ngữ">
           <option value="EN">EN - English</option>
           <option value="JA">JA - 日本語</option>
           <option value="ZH">ZH - 中文</option>
@@ -35,692 +37,803 @@
       </div>
 
       <!-- Level Selector -->
-      <div class="level-selector">
-        <i class="fa-solid fa-layer-group" style="color: var(--primary-light);"></i>
-        <select id="select-level" class="custom-select">
-          <option value="A1">Level A1</option>
-          <option value="A2" selected>Level A2</option>
-          <option value="B1">Level B1</option>
-          <option value="B2">Level B2</option>
+      <div class="level-selector" title="Chọn cấp độ">
+        <i class="fa-solid fa-layer-group" style="color:var(--primary-light); font-size:0.85rem;" aria-hidden="true"></i>
+        <select id="select-level" class="custom-select" aria-label="Chọn cấp độ">
+          <option value="A1">A1</option>
+          <option value="A2" selected>A2</option>
+          <option value="B1">B1</option>
+          <option value="B2">B2</option>
         </select>
       </div>
 
-      <!-- Streak Pill -->
-      <div class="streak-pill" title="Chuỗi học tập liên tục">
-        <i class="fa-solid fa-fire"></i>
-        <span id="streak-counter-val">5</span> Ngày
+      <!-- Streak Counter -->
+      <div class="streak-pill" title="Chuỗi học tập liên tục" aria-label="Streak học tập">
+        <i class="fa-solid fa-fire" aria-hidden="true"></i>
+        <span id="streak-counter-val">5</span>
+        <span>Ngày</span>
       </div>
 
-      <!-- SRS Badge Widget -->
-      <div class="srs-nav-badge" id="btn-quick-srs">
-        <i class="fa-solid fa-brain"></i>
-        Ôn từ vựng
-        <span class="badge-count" id="srs-badge-count">24</span>
+      <!-- SRS Review Badge -->
+      <div class="srs-nav-badge" id="btn-quick-srs" role="button" tabindex="0" title="Ôn tập SRS" aria-label="Mở ôn tập SRS">
+        <i class="fa-solid fa-brain" aria-hidden="true"></i>
+        <span>Ôn từ</span>
+        <span class="badge-count" id="srs-badge-count">0</span>
       </div>
 
       <!-- Dictionary Button -->
-      <div class="srs-nav-badge" id="btn-open-dict-modal" style="background:rgba(245,158,11,0.2); border-color:var(--accent-amber); cursor:pointer;" title="Tra cứu Từ điển 4 Ngôn ngữ">
-        <i class="fa-solid fa-book-bookmark" style="color:var(--accent-amber);"></i>
-        Từ điển
+      <div class="srs-nav-badge" id="btn-open-dict-modal"
+           style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); color:var(--accent-amber);"
+           role="button" tabindex="0" title="Tra cứu Từ điển 4 ngôn ngữ" aria-label="Mở từ điển">
+        <i class="fa-solid fa-book-bookmark" aria-hidden="true"></i>
+        <span>Từ điển</span>
       </div>
 
-      <!-- User Auth Section -->
+      <!-- Auth Container -->
       <div id="nav-auth-container">
-        <button class="btn btn-primary btn-sm" id="btn-nav-login">
-          <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+        <button class="btn btn-primary btn-sm" id="btn-nav-login" aria-label="Đăng nhập">
+          <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Đăng nhập
         </button>
       </div>
+
+      <!-- Mobile Hamburger -->
+      <button class="hamburger" id="hamburger-btn" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
 
-    <!-- Navigation Menu -->
-    <div class="nav-menu">
-      <a href="#dashboard" class="nav-link active" data-target="view-dashboard">
-        <i class="fa-solid fa-compass"></i> Dashboard
+    <!-- Navigation Links -->
+    <nav class="nav-menu" id="nav-menu" aria-label="Sections">
+      <a href="#dashboard"  class="nav-link active" data-target="view-dashboard">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i> Dashboard
       </a>
-      <a href="#studypath" class="nav-link" data-target="view-studypath">
-        <i class="fa-solid fa-route"></i> Lộ trình tuần
+      <a href="#studypath"  class="nav-link" data-target="view-studypath">
+        <i class="fa-solid fa-route" aria-hidden="true"></i> Lộ trình tuần
       </a>
       <a href="#vocabvault" class="nav-link" data-target="view-vocabvault">
-        <i class="fa-solid fa-book-bookmark"></i> Vocab Vault
+        <i class="fa-solid fa-book-bookmark" aria-hidden="true"></i> Vocab Vault
       </a>
-      <a href="#profile" class="nav-link" data-target="view-profile">
-        <i class="fa-solid fa-chart-pie"></i> Thống kê
+      <a href="#profile"    class="nav-link" data-target="view-profile">
+        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Thống kê
       </a>
-    </div>
+    </nav>
   </nav>
 
-  <!-- MAIN APP CONTAINER -->
-  <main class="app-container">
+  <!-- ===================== MAIN APP ===================== -->
+  <main class="app-container" id="main-content">
 
-    <!-- 1. DASHBOARD VIEW -->
-    <section id="view-dashboard" class="view-section active">
+    <!-- =========== 1. DASHBOARD =========== -->
+    <section id="view-dashboard" class="view-section active" aria-label="Dashboard">
+
+      <!-- Quick Stats Row -->
+      <div class="dash-stats-row">
+        <div class="stat-chip">
+          <div class="stat-chip-icon amber"><i class="fa-solid fa-fire"></i></div>
+          <div>
+            <div class="stat-chip-label">Streak liên tiếp</div>
+            <div class="stat-chip-value" style="color:var(--accent-amber);">
+              <span id="dash-streak-val">5</span>&thinsp;ngày
+            </div>
+          </div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-icon indigo"><i class="fa-solid fa-star"></i></div>
+          <div>
+            <div class="stat-chip-label">Điểm XP tích lũy</div>
+            <div class="stat-chip-value" style="color:var(--primary-light);">
+              <span id="dash-xp-val">250</span>&thinsp;XP
+            </div>
+          </div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-icon emerald"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <div class="stat-chip-label">Từ đã thành thạo</div>
+            <div class="stat-chip-value" style="color:var(--secondary);">
+              <span id="dash-mastered-val">0</span>&thinsp;từ
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="dashboard-grid">
-        <!-- Main Welcome & Progress Banner -->
+        <!-- Welcome Banner -->
         <div class="glass-card welcome-banner">
           <div class="week-hero-header">
             <div>
-              <span class="week-tag" id="dash-week-tag">Tuần 4 - A2</span>
-              <h2 id="dash-week-title" style="font-size: 1.8rem; margin-top: 0.25rem;">W4: Eating Out & Food Requests</h2>
-              <p class="text-muted mt-1" id="dash-week-desc">Chủ đề: Gọi món tại nhà hàng và yêu cầu chỉnh vị theo nhu cầu cá nhân.</p>
+              <span class="week-tag" id="dash-week-tag">Tuần 1 · A2</span>
+              <h2 id="dash-week-title" style="font-size:1.75rem; margin-top:0.3rem;">
+                W1: Introduction & Greetings
+              </h2>
+              <p class="text-muted mt-1" id="dash-week-desc" style="font-size:0.95rem;">
+                Chủ đề: Giới thiệu bản thân và chào hỏi trong tình huống thường ngày.
+              </p>
             </div>
-            <button class="btn btn-primary" id="dash-btn-continue">
-              Tiếp tục học ngay <i class="fa-solid fa-arrow-right"></i>
+            <button class="btn btn-primary" id="dash-btn-continue" style="flex-shrink:0;">
+              Học ngay <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
             </button>
           </div>
 
-          <!-- Skill Completion Bars -->
+          <!-- Skill Progress -->
           <div class="progress-skills-grid">
             <div class="skill-progress-item">
               <div class="skill-header">
-                <span><i class="fa-solid fa-book-open"></i> Đọc (Reading)</span>
-                <span id="prog-reading-val">85%</span>
+                <span><i class="fa-solid fa-book-open" aria-hidden="true"></i> Đọc</span>
+                <span id="prog-reading-val">0%</span>
               </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill fill-reading" style="width: 85%;"></div>
-              </div>
-            </div>
-
-            <div class="skill-progress-item">
-              <div class="skill-header">
-                <span><i class="fa-solid fa-headphones"></i> Nghe (Listening)</span>
-                <span id="prog-listening-val">70%</span>
-              </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill fill-listening" style="width: 70%;"></div>
+              <div class="progress-bar-bg" role="progressbar" aria-label="Tiến độ Đọc">
+                <div class="progress-bar-fill fill-reading" id="prog-reading-fill" style="width:0%;"></div>
               </div>
             </div>
-
             <div class="skill-progress-item">
               <div class="skill-header">
-                <span><i class="fa-solid fa-pen-nib"></i> Viết (Writing)</span>
-                <span id="prog-writing-val">60%</span>
+                <span><i class="fa-solid fa-headphones" aria-hidden="true"></i> Nghe</span>
+                <span id="prog-listening-val">0%</span>
               </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill fill-writing" style="width: 60%;"></div>
+              <div class="progress-bar-bg" role="progressbar" aria-label="Tiến độ Nghe">
+                <div class="progress-bar-fill fill-listening" id="prog-listening-fill" style="width:0%;"></div>
               </div>
             </div>
-
             <div class="skill-progress-item">
               <div class="skill-header">
-                <span><i class="fa-solid fa-comments"></i> Roleplay Arena</span>
-                <span id="prog-roleplay-val">90%</span>
+                <span><i class="fa-solid fa-pen-nib" aria-hidden="true"></i> Viết</span>
+                <span id="prog-writing-val">0%</span>
               </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill fill-roleplay" style="width: 90%;"></div>
+              <div class="progress-bar-bg" role="progressbar" aria-label="Tiến độ Viết">
+                <div class="progress-bar-fill fill-writing" id="prog-writing-fill" style="width:0%;"></div>
+              </div>
+            </div>
+            <div class="skill-progress-item">
+              <div class="skill-header">
+                <span><i class="fa-solid fa-comments" aria-hidden="true"></i> Roleplay</span>
+                <span id="prog-roleplay-val">0%</span>
+              </div>
+              <div class="progress-bar-bg" role="progressbar" aria-label="Tiến độ Roleplay">
+                <div class="progress-bar-fill fill-roleplay" id="prog-roleplay-fill" style="width:0%;"></div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- SRS Review Box Widget -->
+        <!-- SRS Review Box -->
         <div class="glass-card srs-widget-box">
-          <h3 style="display:flex; align-items:center; gap:0.5rem; color: var(--secondary);">
-            <i class="fa-solid fa-bolt"></i> Ôn tập SRS hôm nay
+          <h3 style="display:flex; align-items:center; gap:0.5rem; color:var(--secondary);">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i> Ôn tập SRS hôm nay
           </h3>
-          <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Thuật toán Lặp lại Ngắt quãng sẽ giúp bạn khắc sâu từ vựng vào bộ nhớ dài hạn.
+          <p class="text-muted mt-1" style="font-size:0.88rem;">
+            Thuật toán Lặp lại Ngắt quãng giúp bạn khắc sâu từ vựng vào bộ nhớ dài hạn.
           </p>
-          <div class="srs-widget-content" style="margin-top: 1.5rem;">
+          <div class="srs-widget-content">
             <div>
-              <div class="srs-big-num" id="srs-widget-num">24</div>
-              <div style="font-size: 0.85rem; color: var(--text-muted);">Từ vựng cần ôn lại</div>
+              <div class="srs-big-num" id="srs-widget-num" aria-label="Số từ cần ôn">0</div>
+              <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.2rem;">Từ vựng cần ôn lại</div>
             </div>
             <button class="btn btn-success" id="dash-btn-start-srs">
-              <i class="fa-solid fa-play"></i> Ôn tập ngay
+              <i class="fa-solid fa-play" aria-hidden="true"></i> Ôn tập ngay
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 2. STUDY PATH VIEW -->
-    <section id="view-studypath" class="view-section">
-      
-      <!-- Horizontal 12-Week Selector -->
-      <div class="week-selector-container" id="week-selector-list">
-        <!-- Dynamic Week Buttons generated by JS -->
+    <!-- =========== 2. STUDY PATH =========== -->
+    <section id="view-studypath" class="view-section" aria-label="Lộ trình học tuần">
+
+      <!-- Week Selector -->
+      <div class="week-selector-container" id="week-selector-list" role="tablist" aria-label="Chọn tuần học"></div>
+
+      <!-- Week Header -->
+      <div class="glass-card" style="margin-bottom:1.25rem;">
+        <span class="week-tag" id="sp-week-tag">Tuần 1 · A2</span>
+        <h2 id="sp-week-title" style="font-size:1.5rem; margin-top:0.3rem;">Loading...</h2>
+        <p class="text-muted mt-1" id="sp-topic-vi" style="font-size:0.95rem;"></p>
       </div>
 
-      <!-- Current Week Header Banner -->
-      <div class="glass-card" style="margin-bottom: 1.25rem;">
-        <span class="week-tag" id="sp-week-tag">Week 1</span>
-        <h2 id="sp-week-title" style="font-size: 1.6rem;">Title</h2>
-        <p class="text-muted mt-1" id="sp-topic-vi">Chủ đề tiếng Việt</p>
-      </div>
-
-      <!-- Module Navigation Tabs -->
-      <div class="module-tabs">
-        <button class="module-tab-btn active" data-module="module-grammar">
-          <i class="fa-solid fa-cubes"></i> Module 1: Grammar Hub
+      <!-- Module Tabs -->
+      <div class="module-tabs" role="tablist" aria-label="Các module học">
+        <button class="module-tab-btn active" data-module="module-grammar" role="tab" aria-selected="true" aria-controls="module-grammar">
+          <i class="fa-solid fa-cubes" aria-hidden="true"></i> Module 1: Grammar Hub
         </button>
-        <button class="module-tab-btn" data-module="module-reading">
-          <i class="fa-solid fa-book-open"></i> Module 2: Reading & Listening Lab
+        <button class="module-tab-btn" data-module="module-reading" role="tab" aria-selected="false" aria-controls="module-reading">
+          <i class="fa-solid fa-book-open" aria-hidden="true"></i> Module 2: Reading &amp; Listening Lab
         </button>
-        <button class="module-tab-btn" data-module="module-roleplay">
-          <i class="fa-solid fa-stopwatch"></i> Module 3: 30s Roleplay Arena
+        <button class="module-tab-btn" data-module="module-roleplay" role="tab" aria-selected="false" aria-controls="module-roleplay">
+          <i class="fa-solid fa-stopwatch" aria-hidden="true"></i> Module 3: 30s Roleplay Arena
         </button>
       </div>
 
-      <!-- MODULE 1: GRAMMAR HUB -->
-      <div id="module-grammar" class="module-content active">
+      <!-- MODULE 1: Grammar Hub -->
+      <div id="module-grammar" class="module-content active" role="tabpanel">
         <div class="glass-card grammar-hub-card">
-          <h3><i class="fa-solid fa-book-bookmark" style="color: var(--primary-light);"></i> Công thức & Cấu trúc chính</h3>
-          <div class="formula-box" id="grammar-formula">
+          <h3>
+            <i class="fa-solid fa-book-bookmark" style="color:var(--primary-light);" aria-hidden="true"></i>
+            Công thức &amp; Cấu trúc chính
+          </h3>
+          <div class="formula-box" id="grammar-formula" aria-label="Công thức ngữ pháp">
             S + V(s/es) + O
           </div>
 
-          <!-- Nuance Comparison Grid -->
           <div class="nuance-comparison-grid">
             <div class="nuance-card en-nuance">
-              <h4 style="color: var(--accent-cyan);"><i class="fa-solid fa-globe"></i> English / Target Nuance</h4>
-              <p id="grammar-en-nuance" class="mt-2 text-muted" style="font-size: 0.95rem;">-</p>
+              <h4 style="color:var(--accent-cyan);">
+                <i class="fa-solid fa-globe" aria-hidden="true"></i> English / Target Nuance
+              </h4>
+              <p id="grammar-en-nuance" class="mt-2 text-muted" style="font-size:0.93rem;">—</p>
             </div>
             <div class="nuance-card vi-nuance">
-              <h4 style="color: var(--secondary);"><i class="fa-solid fa-flag"></i> Giải thích Tiếng Việt</h4>
-              <p id="grammar-vi-nuance" class="mt-2 text-muted" style="font-size: 0.95rem;">-</p>
+              <h4 style="color:var(--secondary);">
+                <i class="fa-solid fa-flag" aria-hidden="true"></i> Giải thích Tiếng Việt
+              </h4>
+              <p id="grammar-vi-nuance" class="mt-2 text-muted" style="font-size:0.93rem;">—</p>
             </div>
           </div>
 
-          <!-- 3 Contrasting Example Sentences -->
-          <h4 style="margin-top: 1.5rem; font-size: 1.1rem;"><i class="fa-solid fa-list-check"></i> 3 Câu ví dụ tương phản tiêu biểu</h4>
-          <div id="grammar-examples-list" style="margin-top: 0.75rem;">
-            <!-- Example sentence items rendered by JS -->
-          </div>
+          <h4 style="margin-top:1.5rem; font-size:1.05rem;">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> 3 Câu ví dụ tương phản
+          </h4>
+          <div id="grammar-examples-list" style="margin-top:0.65rem;"></div>
         </div>
       </div>
 
-      <!-- MODULE 2: READING & LISTENING LAB -->
-      <div id="module-reading" class="module-content" style="display:none;">
+      <!-- MODULE 2: Reading & Listening Lab -->
+      <div id="module-reading" class="module-content" style="display:none;" role="tabpanel">
         <div class="glass-card">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-            <h3 id="reading-passage-title"><i class="fa-solid fa-headphones" style="color: var(--secondary);"></i> Reading & Audio Practice</h3>
-            
-            <!-- Audio Speed Switcher -->
+            <h3 id="reading-passage-title">
+              <i class="fa-solid fa-headphones" style="color:var(--secondary);" aria-hidden="true"></i>
+              Reading &amp; Audio Practice
+            </h3>
             <div class="audio-controls-bar">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Tốc độ đọc Audio:</span>
+              <span style="font-size:0.82rem; font-weight:600; color:var(--text-muted);">Tốc độ:</span>
               <div class="speed-toggle-group">
-                <button class="speed-btn" data-speed="0.75">0.75x (Chậm)</button>
-                <button class="speed-btn active" data-speed="1.0">1.0x (Tự nhiên)</button>
+                <button class="speed-btn" data-speed="0.75">0.75x</button>
+                <button class="speed-btn active" data-speed="1.0">1.0x</button>
               </div>
               <button class="btn btn-primary btn-sm" id="btn-play-reading-audio">
-                <i class="fa-solid fa-play"></i> Phát Audio
+                <i class="fa-solid fa-play" aria-hidden="true"></i> Phát Audio
               </button>
             </div>
           </div>
 
-          <!-- Reading Text Container with Pop-up Dict -->
-          <div class="reading-text-box" id="reading-text-container">
-            <!-- Text rendered with interactive dictionary tooltips -->
-          </div>
-          
-          <small class="text-dim"><i class="fa-solid fa-circle-info"></i> Mẹo: Rê chuột hoặc chạm vào các từ được gạch chân để mở Từ điển Pop-up tra nghĩa tức thì!</small>
+          <div class="reading-text-box" id="reading-text-container" aria-live="polite"></div>
+          <small class="text-dim">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            Mẹo: Rê chuột vào từ gạch chân để xem nghĩa ngay!
+          </small>
         </div>
       </div>
 
-      <!-- MODULE 3: 30S ROLEPLAY ARENA -->
-      <div id="module-roleplay" class="module-content" style="display:none;">
+      <!-- MODULE 3: 30s Roleplay Arena -->
+      <div id="module-roleplay" class="module-content" style="display:none;" role="tabpanel">
         <div class="arena-container">
-          
+
           <!-- Context Card -->
           <div class="glass-card context-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <h4><i class="fa-solid fa-masks-theater" style="color: var(--accent-purple);"></i> Bối cảnh tình huống (Context Card)</h4>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+              <h4>
+                <i class="fa-solid fa-masks-theater" style="color:var(--accent-purple);" aria-hidden="true"></i>
+                Bối cảnh tình huống
+              </h4>
               <button class="btn btn-secondary btn-sm" id="btn-toggle-transcript">
-                <i class="fa-solid fa-eye"></i> Hiện/Ẩn Transcript
+                <i class="fa-solid fa-eye" aria-hidden="true"></i> Xem / Ẩn Transcript
               </button>
             </div>
-            <p id="rp-context-vi" style="font-size: 1.1rem; margin-top: 0.75rem; font-weight: 600; color: var(--text-main);">-</p>
-            <p id="rp-context-target" style="font-size: 0.95rem; margin-top: 0.35rem; color: var(--text-muted);">-</p>
+            <p id="rp-context-vi" style="font-size:1.05rem; margin-top:0.75rem; font-weight:600;">—</p>
+            <p id="rp-context-target" style="font-size:0.92rem; margin-top:0.3rem; color:var(--text-muted);">—</p>
 
-            <div id="rp-transcript-box" style="display:none; margin-top:1rem; padding:0.85rem; background:rgba(0,0,0,0.3); border-radius:var(--radius-md); border-left:3px solid var(--primary-light);">
+            <div id="rp-transcript-box" style="display:none; margin-top:1rem; padding:0.9rem;
+                 background:rgba(0,0,0,0.28); border-radius:var(--r-md); border-left:3px solid var(--primary-light);">
               <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
-                <strong id="rp-char-name">Nhân vật ảo:</strong>
-                <button class="btn btn-secondary btn-sm" id="btn-play-rp-char-audio"><i class="fa-solid fa-volume-high"></i> Nghe câu hỏi</button>
+                <strong id="rp-char-name" style="color:var(--primary-light);">Nhân vật:</strong>
+                <button class="btn btn-secondary btn-sm" id="btn-play-rp-char-audio">
+                  <i class="fa-solid fa-volume-high" aria-hidden="true"></i> Nghe
+                </button>
               </div>
-              <p id="rp-char-prompt-text" style="font-style: italic; color: #a5b4fc;">-</p>
+              <p id="rp-char-prompt-text" style="font-style:italic; color:#a5b4fc; font-size:0.95rem;">—</p>
             </div>
           </div>
 
-          <!-- Action Zone & 30s Countdown Timer -->
+          <!-- Action Zone -->
           <div class="action-zone">
-            <!-- Dynamic SVG Circular Timer -->
-            <div class="timer-wrapper">
-              <svg class="timer-svg" viewBox="0 0 140 140">
-                <circle class="timer-circle-bg" cx="70" cy="70" r="60"></circle>
-                <circle class="timer-circle-progress is-green" id="timer-progress-circle" cx="70" cy="70" r="60"></circle>
+            <!-- SVG Circular Timer -->
+            <div class="timer-wrapper" aria-label="Đồng hồ đếm ngược 30 giây">
+              <svg class="timer-svg" viewBox="0 0 160 160" aria-hidden="true">
+                <circle class="timer-circle-bg" cx="80" cy="80" r="68"></circle>
+                <circle class="timer-circle-progress is-green" id="timer-progress-circle" cx="80" cy="80" r="68"></circle>
               </svg>
-              <div class="timer-text-display" id="timer-display-num">30</div>
+              <div class="timer-text-display" id="timer-display-num" aria-live="polite">30</div>
             </div>
 
             <!-- Input Mode Switcher -->
-            <div class="input-mode-switcher">
+            <div class="input-mode-switcher" role="group" aria-label="Chọn phương thức nhập">
               <button class="mode-btn active" id="mode-text-btn">
-                <i class="fa-solid fa-keyboard"></i> Gõ phím
+                <i class="fa-solid fa-keyboard" aria-hidden="true"></i> Gõ phím
               </button>
               <button class="mode-btn" id="mode-voice-btn">
-                <i class="fa-solid fa-microphone"></i> Thu âm giọng nói
+                <i class="fa-solid fa-microphone" aria-hidden="true"></i> Thu âm
               </button>
             </div>
 
-            <!-- Roleplay Input Form -->
+            <!-- Roleplay Input -->
             <div class="roleplay-input-container">
-              <div id="mic-visualizer-box" style="display:none;" class="mic-active-visualizer">
-                <div class="mic-wave"></div>
-                <span>Đang lắng nghe giọng nói của bạn... Hãy nói vào Micro!</span>
+              <div id="mic-visualizer-box" style="display:none;" class="mic-active-visualizer" aria-live="polite">
+                <div class="mic-wave" aria-hidden="true"></div>
+                <span>Đang lắng nghe... Hãy nói vào Micro!</span>
               </div>
-
-              <textarea id="roleplay-user-input" class="roleplay-textarea" placeholder="Nhập hoặc nói phản xạ của bạn bằng ngôn ngữ mục tiêu..."></textarea>
-              
-              <div style="display:flex; justify-content:center; gap:1rem; margin-top:1.25rem;">
+              <textarea
+                id="roleplay-user-input"
+                class="roleplay-textarea"
+                placeholder="Nhập hoặc nói phản xạ của bạn bằng ngôn ngữ mục tiêu..."
+                aria-label="Nhập câu trả lời roleplay"
+              ></textarea>
+              <div style="display:flex; justify-content:center; gap:0.85rem; margin-top:1.1rem; flex-wrap:wrap;">
                 <button class="btn btn-secondary" id="btn-start-timer">
-                  <i class="fa-solid fa-play"></i> Bắt đầu 30s
+                  <i class="fa-solid fa-play" aria-hidden="true"></i> Bắt đầu 30s
                 </button>
                 <button class="btn btn-primary" id="btn-submit-roleplay">
-                  <i class="fa-solid fa-paper-plane"></i> Nộp bài & Phân tích AI (<2.5s)
+                  <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Nộp bài &amp; AI Phân tích
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 3-Column Feedback & Comparison -->
+          <!-- Feedback Card -->
           <div class="glass-card" id="rp-feedback-card" style="display:none;">
-            <h3><i class="fa-solid fa-sliders" style="color: var(--secondary);"></i> So sánh đối chiếu & Phân tích lỗi</h3>
-            
+            <h3>
+              <i class="fa-solid fa-sliders" style="color:var(--secondary);" aria-hidden="true"></i>
+              So sánh đối chiếu &amp; Phân tích lỗi
+            </h3>
             <div class="feedback-grid">
-              <!-- Column 1: Your Response -->
               <div class="feedback-col col-user">
                 <div class="col-header">
-                  <i class="fa-solid fa-user-pen"></i> Cột 1: Your Response
+                  <i class="fa-solid fa-user-pen" aria-hidden="true"></i> Cột 1: Your Response
                 </div>
-                <div id="rp-col-1-body">
-                  <!-- Analyzed user text with underlined errors -->
-                </div>
+                <div id="rp-col-1-body"></div>
               </div>
-
-              <!-- Column 2: Standard Answer -->
               <div class="feedback-col col-standard">
                 <div class="col-header">
-                  <i class="fa-solid fa-book"></i> Cột 2: Standard Answer
+                  <i class="fa-solid fa-book" aria-hidden="true"></i> Cột 2: Standard Answer
                 </div>
-                <p id="rp-col-2-text" style="font-size: 1rem; color: var(--text-main);">-</p>
-                <small class="text-muted block mt-2" style="display:block; margin-top:0.75rem;">(Câu trả lời chuẩn mực, đúng ngữ pháp sách vở)</small>
-                <button class="btn btn-secondary btn-sm mt-2" id="btn-speak-col2" style="margin-top:0.75rem;">
-                  <i class="fa-solid fa-volume-high"></i> Nghe mẫu
-                </button>
+                <div>
+                  <p id="rp-col-2-text" style="font-size:0.97rem;">—</p>
+                  <small class="text-muted block mt-2">(Câu trả lời chuẩn mực)</small>
+                  <button class="btn btn-secondary btn-sm mt-2" id="btn-speak-col2" style="margin-top:0.65rem;">
+                    <i class="fa-solid fa-volume-high" aria-hidden="true"></i> Nghe mẫu
+                  </button>
+                </div>
               </div>
-
-              <!-- Column 3: Native / Natural Answer -->
               <div class="feedback-col col-native">
                 <div class="col-header">
-                  <i class="fa-solid fa-comments"></i> Cột 3: Native / Natural
+                  <i class="fa-solid fa-comments" aria-hidden="true"></i> Cột 3: Native / Natural
                 </div>
-                <p id="rp-col-3-text" style="font-size: 1rem; color: #6ee7b7; font-weight:600;">-</p>
-                <small class="text-muted block mt-2" style="display:block; margin-top:0.75rem;">(Cách nói tự nhiên, văn phong đời thường bản xứ)</small>
-                <button class="btn btn-success btn-sm mt-2" id="btn-speak-col3" style="margin-top:0.75rem;">
-                  <i class="fa-solid fa-play"></i> Nghe giọng nói bản xứ
-                </button>
+                <div>
+                  <p id="rp-col-3-text" style="font-size:0.97rem; color:#6ee7b7; font-weight:600;">—</p>
+                  <small class="text-muted block mt-2">(Cách nói tự nhiên của bản xứ)</small>
+                  <button class="btn btn-success btn-sm mt-2" id="btn-speak-col3" style="margin-top:0.65rem;">
+                    <i class="fa-solid fa-play" aria-hidden="true"></i> Nghe giọng bản xứ
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-        </div>
+        </div><!-- .arena-container -->
       </div>
     </section>
 
-    <!-- 3. VOCAB VAULT VIEW -->
-    <section id="view-vocabvault" class="view-section">
+    <!-- =========== 3. VOCAB VAULT =========== -->
+    <section id="view-vocabvault" class="view-section" aria-label="Vocab Vault — Sổ từ vựng">
       <div class="glass-card">
         <div class="vocab-dual-header">
           <div>
-            <h2><i class="fa-solid fa-book-bookmark" style="color: var(--primary-light);"></i> Vocab Vault (Sổ từ vựng)</h2>
-            <p class="text-muted">Quản lý từ vựng cá nhân kết hợp thuật toán lặp lại ngắt quãng (SRS Mastery 1-5).</p>
+            <h2>
+              <i class="fa-solid fa-book-bookmark" style="color:var(--primary-light);" aria-hidden="true"></i>
+              Vocab Vault
+            </h2>
+            <p class="text-muted mt-1" style="font-size:0.9rem;">
+              Quản lý từ vựng cá nhân kết hợp SRS Mastery 1–5.
+            </p>
           </div>
           <button class="btn btn-success" id="btn-open-srs-mode">
-            <i class="fa-solid fa-layer-group"></i> Mở Thẻ Flashcard SRS
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> Mở Flashcard SRS
           </button>
         </div>
 
-        <!-- Add Vocab Dual Mode Box -->
-        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-          <h4 style="margin-bottom: 1rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-amber);"></i> Thêm từ vựng mới (Dual-mode)</h4>
-          
+        <!-- Add Vocab Form -->
+        <div style="background:rgba(0,0,0,0.25); padding:1.4rem; border-radius:var(--r-md);
+                    border:1px solid var(--border); margin-bottom:1.5rem;">
+          <h4 style="margin-bottom:1rem; font-size:1rem;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent-amber);" aria-hidden="true"></i>
+            Thêm từ vựng mới (AI Auto-fill)
+          </h4>
+
           <div class="form-row">
             <div class="form-group" style="flex:2;">
-              <label>Từ vựng / Thuật ngữ</label>
-              <input type="text" id="inp-vocab-word" class="form-control" placeholder="Nhập từ vựng (ví dụ: resilient, 約束, 关系, 대박)...">
+              <label for="inp-vocab-word">Từ vựng / Thuật ngữ</label>
+              <input type="text" id="inp-vocab-word" class="form-control"
+                     placeholder="Nhập từ (ví dụ: resilient, 約束, 关系, 대박)...">
             </div>
             <div class="form-group" style="align-self:flex-end;">
               <button type="button" class="btn btn-primary" id="btn-ai-autofill">
-                <i class="fa-solid fa-robot"></i> Phân tích AI Tự động
+                <i class="fa-solid fa-robot" aria-hidden="true"></i> Phân tích AI
               </button>
             </div>
           </div>
 
-          <div class="form-row mt-2">
+          <div class="form-row mt-2" style="margin-top:0.85rem;">
             <div class="form-group">
-              <label>Phiên âm (IPA / Furigana / Pinyin / Romaja)</label>
-              <input type="text" id="inp-vocab-phonetic" class="form-control" placeholder="Ví dụ: /rɪˈzɪl.i.ənt/ hoặc Pinyin">
+              <label for="inp-vocab-phonetic">Phiên âm (IPA / Furigana / Pinyin / Romaja)</label>
+              <input type="text" id="inp-vocab-phonetic" class="form-control" placeholder="/rɪˈzɪl.i.ənt/ hoặc Pinyin">
             </div>
             <div class="form-group">
-              <label>Dịch nghĩa Tiếng Việt</label>
+              <label for="inp-vocab-trans-vi">Dịch nghĩa Tiếng Việt</label>
               <input type="text" id="inp-vocab-trans-vi" class="form-control" placeholder="Nghĩa tiếng Việt...">
             </div>
             <div class="form-group">
-              <label>Giải thích Tiếng Anh</label>
+              <label for="inp-vocab-exp-en">Giải thích Tiếng Anh</label>
               <input type="text" id="inp-vocab-exp-en" class="form-control" placeholder="English definition...">
             </div>
           </div>
 
-          <div class="form-row mt-2">
+          <div class="form-row mt-2" style="margin-top:0.85rem;">
             <div class="form-group" style="flex:2;">
-              <label>Câu ví dụ</label>
+              <label for="inp-vocab-ex-sentence">Câu ví dụ</label>
               <input type="text" id="inp-vocab-ex-sentence" class="form-control" placeholder="Example sentence...">
             </div>
             <div class="form-group" style="flex:2;">
-              <label>Dịch nghĩa câu ví dụ</label>
+              <label for="inp-vocab-ex-trans">Dịch nghĩa câu ví dụ</label>
               <input type="text" id="inp-vocab-ex-trans" class="form-control" placeholder="Dịch nghĩa câu ví dụ...">
             </div>
             <div class="form-group" style="align-self:flex-end;">
-              <button type="button" class="btn btn-primary" id="btn-save-vocab" style="background: linear-gradient(135deg, var(--primary), var(--accent-purple)); font-weight:700; box-shadow: 0 4px 15px var(--primary-glow);">
-                <i class="fa-solid fa-floppy-disk"></i> Lưu vào Sổ từ & DB
+              <button type="button" class="btn btn-primary" id="btn-save-vocab"
+                      style="background:linear-gradient(135deg,var(--primary),var(--accent-purple)); box-shadow:0 4px 16px var(--primary-glow);">
+                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Lưu vào Sổ &amp; DB
               </button>
             </div>
           </div>
         </div>
 
         <!-- Search & Filter Bar -->
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
-          <div style="display:flex; gap:0.75rem; align-items:center; flex:1; max-width:480px;">
-            <input type="text" id="inp-search-vocab" class="form-control" placeholder="🔍 Tìm kiếm từ vựng, phiên âm, dịch nghĩa..." style="background:rgba(255,255,255,0.05); border-radius:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    flex-wrap:wrap; gap:0.85rem; margin-bottom:1rem;">
+          <div style="display:flex; gap:0.65rem; align-items:center; flex:1; max-width:440px;">
+            <input type="search" id="inp-search-vocab" class="form-control"
+                   placeholder="🔍 Tìm kiếm từ, phiên âm, dịch nghĩa..."
+                   aria-label="Tìm kiếm từ vựng">
           </div>
-          <div style="display:flex; gap:0.5rem; align-items:center;">
-            <span class="text-muted" style="font-size:0.85rem; font-weight:600;">Bộ lọc:</span>
-            <select id="filter-mastery" class="custom-select" style="background:rgba(255,255,255,0.05); padding:0.4rem 0.75rem; border-radius:8px;">
-              <option value="ALL">Tất cả Mức độ Mastery (1-5)</option>
-              <option value="1">Mastery Level 1 (Mới)</option>
-              <option value="2">Mastery Level 2 (Đang nhớ)</option>
-              <option value="3">Mastery Level 3 (Khá)</option>
-              <option value="4">Mastery Level 4 (Tốt)</option>
-              <option value="5">Mastery Level 5 (Thành thạo)</option>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <span class="text-muted" style="font-size:0.82rem; font-weight:600;">Lọc:</span>
+            <select id="filter-mastery" class="custom-select"
+                    style="background:rgba(255,255,255,0.05); border:1px solid var(--border);
+                           border-radius:8px; padding:0.35rem 0.7rem; font-size:0.85rem;"
+                    aria-label="Lọc theo mastery level">
+              <option value="ALL">Tất cả Mastery (1-5)</option>
+              <option value="1">Level 1 — Mới</option>
+              <option value="2">Level 2 — Đang nhớ</option>
+              <option value="3">Level 3 — Khá</option>
+              <option value="4">Level 4 — Tốt</option>
+              <option value="5">Level 5 — Thành thạo</option>
             </select>
           </div>
-          <small class="text-muted" id="vocab-total-count">Tổng cộng: 0 từ vựng</small>
-          <small id="sync-status-badge" style="font-size:0.75rem; color:var(--text-dim); display:flex; align-items:center; gap:0.3rem;">
-            <i class="fa-solid fa-circle" style="color:#f59e0b; font-size:0.6rem;"></i> Đang kết nối...
-          </small>
+          <div style="display:flex; align-items:center; gap:0.85rem; flex-wrap:wrap;">
+            <small class="text-muted" id="vocab-total-count">Tổng: 0 từ</small>
+            <small id="sync-status-badge" style="font-size:0.75rem; color:var(--text-dim);
+                   display:flex; align-items:center; gap:0.3rem;" aria-live="polite">
+              <i class="fa-solid fa-circle" style="color:#f59e0b; font-size:0.55rem;" aria-hidden="true"></i>
+              Đang kết nối...
+            </small>
+          </div>
         </div>
 
-        <!-- Vocab Data Table -->
-        <div style="overflow-x:auto;">
-          <table class="vocab-table">
+        <!-- Vocab Table -->
+        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          <table class="vocab-table" role="grid" aria-label="Bảng từ vựng">
             <thead>
               <tr>
-                <th>Từ vựng / Phiên âm</th>
-                <th>Dịch nghĩa Việt / Anh</th>
-                <th>Câu ví dụ</th>
-                <th>Mastery Level</th>
-                <th>Thao tác</th>
+                <th scope="col">Từ vựng / Phiên âm</th>
+                <th scope="col">Dịch nghĩa Việt / Anh</th>
+                <th scope="col">Câu ví dụ</th>
+                <th scope="col">Mastery</th>
+                <th scope="col">Thao tác</th>
               </tr>
             </thead>
             <tbody id="vocab-table-body">
-              <!-- Rendered dynamically -->
+              <tr>
+                <td colspan="5" style="text-align:center; padding:2rem;" class="text-muted">
+                  <div class="skeleton skeleton-row"></div>
+                  <div class="skeleton skeleton-row"></div>
+                  <div class="skeleton skeleton-row"></div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
-        <!-- Vocab Pagination -->
-        <div id="vocab-pagination"></div>
-
+        <div id="vocab-pagination" role="navigation" aria-label="Phân trang từ vựng"></div>
       </div>
     </section>
 
-    <!-- 4. PROFILE & PERFORMANCE VIEW -->
-    <section id="view-profile" class="view-section">
+    <!-- =========== 4. PROFILE & STATS =========== -->
+    <section id="view-profile" class="view-section" aria-label="Hồ sơ và thống kê">
       <div class="glass-card">
-        <h2><i class="fa-solid fa-user-gear" style="color: var(--primary-light);"></i> Hồ sơ & Thống kê hiệu suất Capstone</h2>
-        <p class="text-muted">Theo dõi tổng quan kỹ năng và tiến trình tích lũy ngôn ngữ đồng bộ trên Server DB.</p>
+        <h2>
+          <i class="fa-solid fa-user-gear" style="color:var(--primary-light);" aria-hidden="true"></i>
+          Hồ sơ &amp; Thống kê
+        </h2>
+        <p class="text-muted mt-1" style="font-size:0.9rem;">
+          Theo dõi kỹ năng và tiến trình đồng bộ với Supabase Cloud DB.
+        </p>
 
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem; margin-top:1.5rem;">
-          <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem;">
-            <div class="text-muted" style="font-size:0.85rem;">Streak Ngày liên tiếp</div>
-            <div style="font-size:2.2rem; font-weight:800; color:var(--accent-amber); margin-top:0.25rem;">
-              <i class="fa-solid fa-fire"></i> <span id="prof-streak-val">5</span> Ngày
+        <div class="profile-stats-grid">
+          <div class="profile-stat-card">
+            <div class="text-muted" style="font-size:0.8rem;">Streak liên tiếp</div>
+            <div style="font-size:2rem; font-weight:800; color:var(--accent-amber); margin-top:0.3rem;">
+              <i class="fa-solid fa-fire" aria-hidden="true"></i>
+              <span id="prof-streak-val">5</span> Ngày
             </div>
           </div>
-
-          <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem;">
-            <div class="text-muted" style="font-size:0.85rem;">Điểm Kinh Nghiệm (XP)</div>
-            <div style="font-size:2.2rem; font-weight:800; color:var(--primary-light); margin-top:0.25rem;">
-              <i class="fa-solid fa-star"></i> <span id="prof-xp-val">250</span> XP
+          <div class="profile-stat-card">
+            <div class="text-muted" style="font-size:0.8rem;">Điểm Kinh Nghiệm (XP)</div>
+            <div style="font-size:2rem; font-weight:800; color:var(--primary-light); margin-top:0.3rem;">
+              <i class="fa-solid fa-star" aria-hidden="true"></i>
+              <span id="prof-xp-val">0</span> XP
             </div>
           </div>
-
-          <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem;">
-            <div class="text-muted" style="font-size:0.85rem;">Tổng số từ đã thuộc (Lvl 4-5)</div>
-            <div style="font-size:2.2rem; font-weight:800; color:var(--secondary); margin-top:0.25rem;">
-              <i class="fa-solid fa-circle-check"></i> <span id="prof-mastered-val">128</span> Từ
+          <div class="profile-stat-card">
+            <div class="text-muted" style="font-size:0.8rem;">Từ đã thành thạo (Lvl 4-5)</div>
+            <div style="font-size:2rem; font-weight:800; color:var(--secondary); margin-top:0.3rem;">
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+              <span id="prof-mastered-val">0</span> Từ
             </div>
           </div>
         </div>
 
-        <!-- Capstone Admin Analytics Dashboard Box -->
-        <div style="margin-top: 2rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color-glow); border-radius: var(--radius-lg); padding: 1.5rem;">
-          <h3 style="color: var(--accent-amber); display:flex; align-items:center; gap:0.5rem;">
-            <i class="fa-solid fa-chart-line"></i> Capstone Admin Analytics (Thống kê Đồ án)
+        <!-- Admin / Capstone Analytics -->
+        <div style="margin-top:2rem; background:rgba(10,14,26,0.6); border:1px solid var(--border-glow);
+                    border-radius:var(--r-lg); padding:1.5rem;">
+          <h3 style="color:var(--accent-amber); display:flex; align-items:center; gap:0.5rem;">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i> Capstone Admin Analytics
           </h3>
-          
-          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-top:1rem;">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1rem;">
             <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:8px; text-align:center;">
-              <span class="text-muted" style="font-size:0.8rem;">Tổng số Học viên (Users)</span>
-              <h2 id="admin-stat-users" style="color:#fff; margin-top:0.25rem;">2</h2>
+              <span class="text-muted" style="font-size:0.78rem;">Tổng Học viên</span>
+              <h2 id="admin-stat-users" style="color:#fff; margin-top:0.2rem;">—</h2>
             </div>
             <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:8px; text-align:center;">
-              <span class="text-muted" style="font-size:0.8rem;">Tổng số Từ vựng (Database)</span>
-              <h2 id="admin-stat-vocab" style="color:var(--secondary); margin-top:0.25rem;">9</h2>
+              <span class="text-muted" style="font-size:0.78rem;">Tổng Từ vựng DB</span>
+              <h2 id="admin-stat-vocab" style="color:var(--secondary); margin-top:0.2rem;">—</h2>
             </div>
             <div style="background:rgba(0,0,0,0.3); padding:1rem; border-radius:8px; text-align:center;">
-              <span class="text-muted" style="font-size:0.8rem;">Lượt làm bài Roleplay 30s</span>
-              <h2 id="admin-stat-roleplay" style="color:var(--accent-purple); margin-top:0.25rem;">14</h2>
+              <span class="text-muted" style="font-size:0.78rem;">Lượt Roleplay</span>
+              <h2 id="admin-stat-roleplay" style="color:var(--accent-purple); margin-top:0.2rem;">—</h2>
             </div>
           </div>
 
-          <h4 style="margin-top: 1.5rem; font-size: 0.95rem; text-transform:uppercase; color:var(--text-muted);">🏆 Bảng xếp hạng Học viên xuất sắc</h4>
-          <table class="vocab-table" style="margin-top: 0.5rem;">
+          <h4 style="margin-top:1.5rem; font-size:0.88rem; text-transform:uppercase;
+                     color:var(--text-muted); letter-spacing:0.06em;">
+            🏆 Bảng xếp hạng học viên
+          </h4>
+          <table class="leaderboard-table" style="margin-top:0.5rem;" aria-label="Bảng xếp hạng">
             <thead>
               <tr>
-                <th>Học viên</th>
-                <th>Streak</th>
-                <th>XP Points</th>
+                <th scope="col">Học viên</th>
+                <th scope="col">Streak</th>
+                <th scope="col">XP</th>
               </tr>
             </thead>
-            <tbody id="admin-leaderboard-body">
-              <!-- Rendered dynamically -->
-            </tbody>
+            <tbody id="admin-leaderboard-body"></tbody>
           </table>
         </div>
 
-        <!-- Change Password Card -->
-        <div style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; max-width: 520px;">
-          <h3 style="color: var(--accent-amber); display:flex; align-items:center; gap:0.5rem;">
-            <i class="fa-solid fa-lock"></i> Đổi Mật khẩu Cá nhân
+        <!-- Change Password -->
+        <div style="margin-top:1.5rem; background:rgba(10,14,26,0.6); border:1px solid var(--border);
+                    border-radius:var(--r-lg); padding:1.5rem; max-width:500px;">
+          <h3 style="color:var(--accent-amber); display:flex; align-items:center; gap:0.5rem;">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i> Đổi Mật khẩu
           </h3>
-          <form id="form-change-password" style="margin-top: 1rem;">
-            <div class="form-group" style="margin-bottom: 0.85rem;">
-              <label style="font-size:0.85rem;">Mật khẩu hiện tại</label>
-              <input type="password" id="change-curr-pwd" class="form-control" placeholder="••••••••" required>
+          <form id="form-change-password" style="margin-top:1rem;" novalidate>
+            <div class="form-group" style="margin-bottom:0.85rem;">
+              <label for="change-curr-pwd">Mật khẩu hiện tại</label>
+              <input type="password" id="change-curr-pwd" class="form-control"
+                     placeholder="••••••••" autocomplete="current-password" required>
             </div>
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label style="font-size:0.85rem;">Mật khẩu mới</label>
-              <input type="password" id="change-new-pwd" class="form-control" placeholder="Mật khẩu mới tối thiểu 6 ký tự" required>
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label for="change-new-pwd">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+              <input type="password" id="change-new-pwd" class="form-control"
+                     placeholder="••••••••" autocomplete="new-password" required minlength="6">
             </div>
             <button type="submit" class="btn btn-warning btn-sm">
-              <i class="fa-solid fa-floppy-disk"></i> Cập nhật Mật khẩu mới
+              <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Cập nhật mật khẩu
             </button>
           </form>
         </div>
-
       </div>
     </section>
 
-  </main>
+  </main><!-- #main-content -->
 
-  <!-- AUTHENTICATION MODAL (LOGIN / REGISTER) -->
-  <div class="modal-overlay" id="modal-auth">
-    <div class="modal-content" style="max-width: 440px;">
+  <!-- ===================== AUTH MODAL ===================== -->
+  <div class="modal-overlay" id="modal-auth" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-content" style="max-width:440px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-        <h3 id="auth-modal-title" style="color:var(--primary-light);"><i class="fa-solid fa-user-lock"></i> Đăng nhập hệ thống</h3>
-        <button class="btn btn-secondary btn-sm" id="btn-close-auth-modal"><i class="fa-solid fa-xmark"></i></button>
+        <h3 id="auth-modal-title" style="color:var(--primary-light);">
+          <i class="fa-solid fa-user-lock" aria-hidden="true"></i> Đăng nhập hệ thống
+        </h3>
+        <button class="btn btn-secondary btn-sm" id="btn-close-auth-modal" aria-label="Đóng modal">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
       </div>
 
-      <!-- Auth Tab Switcher -->
-      <div class="input-mode-switcher" style="margin-bottom: 1.25rem;">
-        <button class="mode-btn active" id="auth-tab-login">Đăng nhập</button>
-        <button class="mode-btn" id="auth-tab-register">Đăng ký mới</button>
-        <button class="mode-btn" id="auth-tab-forgot">🔑 Quên MK</button>
+      <!-- Tab Switcher -->
+      <div class="input-mode-switcher" style="margin-bottom:1.25rem;" role="tablist">
+        <button class="mode-btn active" id="auth-tab-login" role="tab" aria-selected="true">Đăng nhập</button>
+        <button class="mode-btn" id="auth-tab-register" role="tab" aria-selected="false">Đăng ký mới</button>
+        <button class="mode-btn" id="auth-tab-forgot" role="tab" aria-selected="false">🔑 Quên MK</button>
       </div>
 
-      <!-- LOGIN FORM -->
-      <form id="form-login">
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label>Email hoặc Tên đăng nhập</label>
-          <input type="text" id="login-email" class="form-control" placeholder="hocvien@gmail.com hoặc admin" required>
+      <!-- Login Form -->
+      <form id="form-login" novalidate>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="login-email">Email hoặc Tên đăng nhập</label>
+          <input type="text" id="login-email" class="form-control"
+                 placeholder="hocvien@gmail.com hoặc admin"
+                 autocomplete="username" required>
         </div>
-        <div class="form-group" style="margin-bottom: 1.25rem;">
-          <label>Mật khẩu</label>
-          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label for="login-password">Mật khẩu</label>
+          <input type="password" id="login-password" class="form-control"
+                 placeholder="••••••••" autocomplete="current-password" required>
         </div>
-        <small class="text-muted block mb-3" style="display:block; margin-bottom:1rem;">Tài khoản Demo: <code>hocvien@gmail.com</code> / <code>123456</code></small>
+        <small class="text-muted" style="display:block; margin-bottom:1rem;">
+          Tài khoản Demo: <code>hocvien@gmail.com</code> / <code>123456</code>
+        </small>
         <button type="submit" class="btn btn-primary" style="width:100%;">
-          <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập ngay
+          <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Đăng nhập ngay
         </button>
       </form>
 
-      <!-- REGISTER FORM -->
-      <form id="form-register" style="display:none;">
-        <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label>Họ và Tên</label>
-          <input type="text" id="reg-fullname" class="form-control" placeholder="Nguyễn Văn A" required>
+      <!-- Register Form -->
+      <form id="form-register" style="display:none;" novalidate>
+        <div class="form-group" style="margin-bottom:0.85rem;">
+          <label for="reg-fullname">Họ và Tên</label>
+          <input type="text" id="reg-fullname" class="form-control"
+                 placeholder="Nguyễn Văn A" autocomplete="name" required>
         </div>
-        <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label>Tên người dùng (Username)</label>
-          <input type="text" id="reg-username" class="form-control" placeholder="nguyenvana" required>
+        <div class="form-group" style="margin-bottom:0.85rem;">
+          <label for="reg-username">Tên người dùng (Username)</label>
+          <input type="text" id="reg-username" class="form-control"
+                 placeholder="nguyenvana" autocomplete="username" required>
         </div>
-        <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label>Địa chỉ Email</label>
-          <input type="email" id="reg-email" class="form-control" placeholder="nguyenvana@gmail.com" required>
+        <div class="form-group" style="margin-bottom:0.85rem;">
+          <label for="reg-email">Địa chỉ Email</label>
+          <input type="email" id="reg-email" class="form-control"
+                 placeholder="nguyenvana@gmail.com" autocomplete="email" required>
         </div>
-        <div class="form-group" style="margin-bottom: 1.25rem;">
-          <label>Mật khẩu</label>
-          <input type="password" id="reg-password" class="form-control" placeholder="Mật khẩu tối thiểu 6 ký tự" required>
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label for="reg-password">Mật khẩu (tối thiểu 6 ký tự)</label>
+          <input type="password" id="reg-password" class="form-control"
+                 placeholder="••••••••" autocomplete="new-password" required minlength="6">
         </div>
         <button type="submit" class="btn btn-success" style="width:100%;">
-          <i class="fa-solid fa-user-plus"></i> Đăng ký tài khoản
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Đăng ký tài khoản
         </button>
       </form>
 
-      <!-- FORGOT PASSWORD FORM WITH OTP EMAIL -->
-      <form id="form-forgot" style="display:none;">
-        <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label>Email đăng ký tài khoản</label>
+      <!-- Forgot Password Form -->
+      <form id="form-forgot" style="display:none;" novalidate>
+        <div class="form-group" style="margin-bottom:0.85rem;">
+          <label for="forgot-email">Email đăng ký tài khoản</label>
           <div style="display:flex; gap:0.5rem;">
-            <input type="text" id="forgot-email" class="form-control" placeholder="hocvien@gmail.com" required style="flex:1;">
+            <input type="text" id="forgot-email" class="form-control"
+                   placeholder="hocvien@gmail.com" style="flex:1;" required>
             <button type="button" id="btn-send-otp" class="btn btn-warning btn-sm" style="white-space:nowrap;">
-              <i class="fa-solid fa-paper-plane"></i> Gửi mã OTP
+              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Gửi OTP
             </button>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label>Mã xác thực OTP (6 chữ số gửi qua Email)</label>
-          <input type="text" id="forgot-otp-code" class="form-control" placeholder="Ví dụ: 682914" required maxlength="6">
+        <div class="form-group" style="margin-bottom:0.85rem;">
+          <label for="forgot-otp-code">Mã OTP (6 chữ số)</label>
+          <input type="text" id="forgot-otp-code" class="form-control"
+                 placeholder="682914" maxlength="6" inputmode="numeric" required>
         </div>
-        <div class="form-group" style="margin-bottom: 1.25rem;">
-          <label>Mật khẩu mới</label>
-          <input type="password" id="forgot-password" class="form-control" placeholder="Nhập mật khẩu mới" required>
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label for="forgot-password">Mật khẩu mới</label>
+          <input type="password" id="forgot-password" class="form-control"
+                 placeholder="Nhập mật khẩu mới" autocomplete="new-password" required>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;">
-          <i class="fa-solid fa-key"></i> Xác thực OTP & Đặt lại Mật khẩu
+          <i class="fa-solid fa-key" aria-hidden="true"></i> Xác thực OTP &amp; Đặt lại mật khẩu
         </button>
       </form>
-
     </div>
   </div>
 
-  <!-- SRS FLASHCARD REVIEW MODAL -->
-  <div class="modal-overlay" id="modal-srs-flashcard">
+  <!-- ===================== SRS FLASHCARD MODAL ===================== -->
+  <div class="modal-overlay" id="modal-srs-flashcard" role="dialog" aria-modal="true" aria-labelledby="srs-modal-title">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-        <h4><i class="fa-solid fa-brain" style="color:var(--secondary);"></i> Ôn tập Flashcard SRS</h4>
-        <button class="btn btn-secondary btn-sm" id="btn-close-srs-modal"><i class="fa-solid fa-xmark"></i> Đóng</button>
+        <h4 id="srs-modal-title">
+          <i class="fa-solid fa-brain" style="color:var(--secondary);" aria-hidden="true"></i>
+          Ôn tập Flashcard SRS
+        </h4>
+        <button class="btn btn-secondary btn-sm" id="btn-close-srs-modal" aria-label="Đóng flashcard">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i> Đóng
+        </button>
       </div>
 
       <div class="flashcard-stage">
-        <!-- 3D Flip Flashcard -->
-        <div class="flashcard-3d" id="srs-flashcard-element">
+        <div class="flashcard-3d" id="srs-flashcard-element" role="button" tabindex="0"
+             aria-label="Thẻ flashcard — nhấp để lật">
           <div class="flashcard-inner">
-            <!-- Front Side -->
+            <!-- Front -->
             <div class="flashcard-front">
               <span class="mastery-pill lvl-1" id="srs-card-lvl">Level 1</span>
-              <h2 id="srs-card-front-word" style="font-size:2.4rem; margin-top:1rem;">Word</h2>
-              <p id="srs-card-front-phonetic" class="text-muted mt-2" style="font-size:1.1rem;">Phonetic</p>
-              <small class="text-dim mt-4" style="margin-top:auto;"><i class="fa-solid fa-rotate"></i> Chạm để lật thẻ xem đáp án</small>
+              <h2 id="srs-card-front-word" style="font-size:2.2rem; margin-top:0.85rem;">Word</h2>
+              <p id="srs-card-front-phonetic" class="text-muted mt-1" style="font-size:1rem;">Phonetic</p>
+              <small class="text-dim" style="margin-top:auto; font-size:0.8rem;">
+                <i class="fa-solid fa-rotate" aria-hidden="true"></i> Nhấp để xem đáp án
+              </small>
             </div>
-
-            <!-- Back Side -->
+            <!-- Back -->
             <div class="flashcard-back">
-              <h3 id="srs-card-back-trans" style="color:#6ee7b7; font-size:1.6rem;">Dịch nghĩa</h3>
-              <p id="srs-card-back-exp" class="text-muted mt-2" style="font-size:0.95rem;">English definition</p>
-              <div style="margin-top:1rem; padding:0.75rem; background:rgba(0,0,0,0.3); border-radius:8px; font-style:italic;" id="srs-card-back-ex">
-                Example sentence
-              </div>
+              <h3 id="srs-card-back-trans" style="color:#6ee7b7; font-size:1.5rem;">Dịch nghĩa</h3>
+              <p id="srs-card-back-exp" class="text-muted mt-2" style="font-size:0.9rem;"></p>
+              <div style="margin-top:0.85rem; padding:0.7rem; background:rgba(0,0,0,0.25);
+                          border-radius:8px; font-style:italic; font-size:0.88rem;" id="srs-card-back-ex"></div>
             </div>
           </div>
         </div>
 
-        <!-- SRS Rating Action Row -->
-        <div class="srs-buttons-row" id="srs-rating-controls" style="display:none;">
-          <button class="btn btn-again" data-rating="again">Again (Chưa nhớ)</button>
-          <button class="btn btn-hard" data-rating="hard">Hard (Khó)</button>
-          <button class="btn btn-good" data-rating="good">Good (Tốt)</button>
-          <button class="btn btn-easy" data-rating="easy">Easy (Dễ)</button>
+        <!-- Rating Buttons -->
+        <div class="srs-buttons-row" id="srs-rating-controls" style="display:none;" role="group" aria-label="Đánh giá độ nhớ">
+          <button class="btn-again" data-rating="again">Again<br><small>Chưa nhớ</small></button>
+          <button class="btn-hard"  data-rating="hard" >Hard<br><small>Khó</small></button>
+          <button class="btn-good"  data-rating="good" >Good<br><small>Tốt</small></button>
+          <button class="btn-easy"  data-rating="easy" >Easy<br><small>Dễ</small></button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- COMPREHENSIVE 4-LANGUAGE DICTIONARY LOOKUP MODAL -->
-  <div class="modal-overlay" id="modal-dictionary">
-    <div class="modal-content" style="max-width: 820px; max-height: 85vh; overflow-y: auto;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.75rem;">
-        <h3 style="color:var(--accent-amber); display:flex; align-items:center; gap:0.5rem; margin:0;">
-          <i class="fa-solid fa-book-bookmark"></i> Tra cứu Từ điển 4 Ngôn ngữ (Anh - Nhật - Trung - Hàn)
+  <!-- ===================== DICTIONARY MODAL ===================== -->
+  <div class="modal-overlay" id="modal-dictionary" role="dialog" aria-modal="true" aria-labelledby="dict-modal-title">
+    <div class="modal-content" style="max-width:860px; max-height:88vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center;
+                  margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.75rem;">
+        <h3 id="dict-modal-title" style="color:var(--accent-amber); display:flex; align-items:center; gap:0.5rem; margin:0;">
+          <i class="fa-solid fa-book-bookmark" aria-hidden="true"></i>
+          Từ điển 4 Ngôn ngữ (EN · JA · ZH · KO)
         </h3>
-        <button class="btn btn-secondary btn-sm" id="btn-close-dict-modal"><i class="fa-solid fa-xmark"></i> Đóng</button>
+        <button class="btn btn-secondary btn-sm" id="btn-close-dict-modal" aria-label="Đóng từ điển">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
       </div>
 
-      <!-- Search & Language Filter Controls -->
       <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.25rem;">
-        <div style="flex:1; min-width:260px;">
-          <input type="text" id="inp-dict-search" class="form-control" placeholder="🔍 Tra từ tiếng Việt, Anh, Nhật, Trung, Hàn..." style="background:rgba(255,255,255,0.05); border-radius:8px;">
+        <div style="flex:1; min-width:240px;">
+          <input type="search" id="inp-dict-search" class="form-control"
+                 placeholder="🔍 Tra từ tiếng Việt, Anh, Nhật, Trung, Hàn..."
+                 aria-label="Tìm kiếm từ điển">
         </div>
-        <select id="select-dict-lang" class="custom-select" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:0.4rem 0.85rem;">
-          <option value="ALL">🌐 Tất cả Ngôn ngữ (EN / JA / ZH / KO)</option>
-          <option value="EN">🇬🇧 Tiếng Anh (English)</option>
-          <option value="JA">🇯🇵 Tiếng Nhật (日本語)</option>
-          <option value="ZH">🇨🇳 Tiếng Trung (中文)</option>
-          <option value="KO">🇰🇷 Tiếng Hàn (한국어)</option>
+        <select id="select-dict-lang" class="custom-select"
+                style="background:rgba(255,255,255,0.05); border:1px solid var(--border);
+                       border-radius:8px; padding:0.4rem 0.85rem;"
+                aria-label="Lọc ngôn ngữ từ điển">
+          <option value="ALL">🌐 Tất cả (EN / JA / ZH / KO)</option>
+          <option value="EN">🇬🇧 Tiếng Anh</option>
+          <option value="JA">🇯🇵 Tiếng Nhật</option>
+          <option value="ZH">🇨🇳 Tiếng Trung</option>
+          <option value="KO">🇰🇷 Tiếng Hàn</option>
         </select>
       </div>
 
-      <!-- Dictionary Output List -->
-      <div id="dict-results-list" style="display:flex; flex-direction:column; gap:1rem;">
-        <!-- Rendered dynamically -->
-      </div>
+      <div id="dict-results-list" style="display:flex; flex-direction:column; gap:1rem;"></div>
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATION CONTAINER -->
-  <div class="toast-container" id="toast-container"></div>
+  <!-- ===================== TOAST CONTAINER ===================== -->
+  <div class="toast-container" id="toast-container" role="log" aria-live="polite" aria-atomic="false"></div>
 
-  <!-- JAVASCRIPT MODULE SCRIPTS -->
+  <!-- ===================== JAVASCRIPT MODULES ===================== -->
   <script src="js/data/curriculum.js"></script>
   <script src="js/data/vocabData.js"></script>
   <script src="js/data/dictionaryData.js"></script>

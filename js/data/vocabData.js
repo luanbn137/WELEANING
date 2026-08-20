@@ -341,13 +341,15 @@ class VocabRepository {
   }
 
   getByLang(lang) {
+    // lang='ALL' items are shared across all languages (server-saved vocab)
     return this.items.filter(item => item.lang === lang || item.lang === 'ALL' || !item.lang);
   }
 
   getDueForReview(lang = null) {
     const now = new Date();
     return this.items.filter(item => {
-      if (lang && item.lang !== lang) return false;
+      // Match if: no lang filter, exact lang match, or lang='ALL' (shared vocab)
+      if (lang && item.lang !== lang && item.lang !== 'ALL' && item.lang) return false;
       return new Date(item.nextReviewDate) <= now;
     });
   }
